@@ -1,7 +1,6 @@
 
 class Node:
     def __init__(self, func):
-        self.layer = layer
         self.value = 0
         self.func = func
 
