@@ -5,17 +5,17 @@ from Gene import *
 from Functions import identity
 
 class Genome:
-    def __init__(self, inputs, outputs):
+    def __init__(self, inputs, outputs, functions):
 
         self.inputs = inputs
         self.outputs = outputs
+        self.functions = functions
 
         # Creating in and out nodes
         self.nodes = [Node(identity, []) for _ in range(inputs)]
         self.nodes += [Node(identity, self.nodes[:self.inputs]) for _ in range(outputs)]  # Never changes order
         # Bias Node
         self.nodes.append(Node(0))
-
         self.genes = []  # Never changes order
         self.layers = [self._get_input() + self._get_bias(), self._get_output()]
 
@@ -83,7 +83,17 @@ class Genome:
 
     def _mutate_node(self):
         gene = random.choice(self.genes)
-        pass
+        func = random.choice(self.functions)
+        node = Node(func, self.nodes[gene.in_node].after)
+        i = len(self.nodes)
+        self.nodes[gene.out_node].after.append(i)
+        self.nodes.append(node)
+        self.layers[-2].append(node)
+        gene1 = Gene(gene.in_node, i, gene.weight, new_innovation(gene.in_node, i))
+        gene2 = Gene(i, gene.out_node, 1, new_innovation(i, gene.out_node))
+        self._add_gene(gene2)
+        self._add_gene(gene1)
+        gene.disable()
 
     def _find_layer(self, obj):
         for i, layer in enumerate(self.layers):  # TODO make more efficient
@@ -104,7 +114,8 @@ class Genome:
             self.layers[layer - 1].append(node)
             self.layers[layer].remove(node)
             for i in node.after:
-                self._move_node(self.nodes[i])
+                if self._find_layer(self.nodes[i]) + 1 >= layer:
+                    self._move_node(self.nodes[i])
         pass
 
     def reset(self):
