@@ -1,3 +1,5 @@
+import random
+
 from Node import *
 from Gene import *
 from Functions import identity
@@ -21,7 +23,10 @@ class Genome:
         """Returns the execution order for the neural net so it can go through feed forward"""
         exe_order = []
         for layer in self.layers:
-            exe_order += sorted(layer, key=lambda o: 0 if type(o) is Node else 1)
+            exe_order += layer
+            for gene in self.genes:
+                if self.nodes[gene.in_node] in layer:
+                    exe_order.append(gene)
         return exe_order
 
     def run(self, inputs):
@@ -47,7 +52,7 @@ class Genome:
             return False
         else:
             self.nodes[gene.out_node].after.append(gene.in_node)
-            for node in self.nodes: # TODO Make more efficient
+            for node in self.nodes:
                 if gene.out_node in node.after:
                     node.after.append(gene.in_node)
             while self._find_layer(self.nodes[gene.in_node]) >= self._find_layer(self.nodes[gene.out_node]):
@@ -56,11 +61,32 @@ class Genome:
             for g in self.genes:
                 if g.in_node == gene.in_node and g.out_node == gene.out_node:
                     g.disable()
+            #self.layers[self._find_layer(self.nodes[gene.in_node])].append(gene)
             self.genes.append(gene)
+
+    def mutate(self, gene_chance, node_chance):
+        if random.random() < gene_chance:
+            self._mutate_gene()
+        if random.random() < node_chance:
+            self._mutate_node()
+
+    def _mutate_gene(self):
+        in_node = random.choice(list(sum(self.layers[:-1], [])))
+        ls = [x if i not in in_node.after else None for i, x in enumerate(self.nodes)]
+        ls = filter(None, ls)
+        out_node = self.nodes.index(random.choice(ls))
+        in_node = self.nodes.index(in_node)
+        weight = random.random()
+        innovation = new_innovation(in_node, out_node)
+        gene = Gene(in_node, out_node, weight, innovation)
+        self._add_gene(gene)
+
+    def _mutate_node(self):
+        gene = random.choice(self.genes)
         pass
 
     def _find_layer(self, obj):
-        for i, layer in enumerate(self.layers): # TODO make more efficient
+        for i, layer in enumerate(self.layers):  # TODO make more efficient
             if obj in layer:
                 return i
         return None
@@ -88,15 +114,6 @@ class Genome:
     def _insert_layer(self, layer_nr, layer):
         """layer is the layer below which to insert a layer"""
         self.layers.insert(layer_nr + 1, layer)
-
-    def _add_gene_overide(self, gene): # TODO remove/modify to match _add_gene
-        """Overrides everything even if the gene is already present"""
-        in_node = gene.in_node
-        out_node = gene.out_node
-        for g in self.genes:
-            if g.in_node == in_node and g.out_node == out_node:
-                self.genes.remove(g)
-                self.genes.append(gene)
 
     def _get_bias(self):
         return self.nodes[self.inputs + self.outputs]
