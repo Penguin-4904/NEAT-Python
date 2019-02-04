@@ -19,6 +19,7 @@ class Genome:
         self.nodes.append(Node(0))
         self.genes = []  # Never changes order
         self.layers = [self._get_input() + self._get_bias(), self._get_output()]
+        self.score = 0
 
     def _assemble(self):
         """Returns the execution order for the neural net so it can go through feed forward"""
@@ -135,3 +136,6 @@ class Genome:
 
     def _get_output(self):
         return self.nodes[self.inputs:self.inputs + self.outputs]
+
+    def get_score(self):
+        return self.score
