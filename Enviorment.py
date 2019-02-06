@@ -1,7 +1,7 @@
 from Genome import *
 
 class Enviorment():
-    def __init__(self, input, output, top, cut, randomness, inno=0):
+    def __init__(self, input, output, top, cut, randomness, inno=0, carry = 1):
 
         self.randomness = randomness
         self.top = top
@@ -12,29 +12,49 @@ class Enviorment():
         self.prev_innovation = [[], []]
         self.cut = cut
         self.species = []
+        self.carry = carry
 
     def create(self, nr):
+        new = []
         for i in range(nr):
-            self.population.append(Genome(self.input, self.output, [identity], self.get_innovation))
-        return self.population
+            new.append(Genome(self.input, self.output, [identity], self.get_innovation))
+        return self.speciate(new)
 
     def generation(self):
+        species_new = []
+        species_surv = []
+        averages = []
+        # Raw scoring
         for s in self.species:
-            self._score_species(s)
             for g in s:
-                g.score = g.score * random.gauss(1, self.randomness) # TODO This does not actually follow the Paper. Fix or decide to not follow paper.
+                g.score = (g.score * random.gauss(1, self.randomness))/len(s)
+            s.sort(key=Genome.get_score())
+            species_new.append(s[:self.carry])
+            species_surv.append(s[:int(self.top * len(s))])
+            averages.append(sum(g.score for g in s))
 
-        self.population.sort(key=Genome.get_score())
-        survive = self.population[:self.top]
-        return survive
+        self.species = species_new
+        # Allocating and creating offspring
+        total = sum(averages)
+        new_genome_nr = sum(len(s) for s in self.species) - (self.carry * len(self.species))
+        for a, s in zip(averages, species_surv):
+            allocated = round((a/total) * new_genome_nr)
+            new_genome = self._repop(s, allocated)
+            self.speciate(new_genome)
+        return self.species
 
-    def speciate(self):
-        for g in self.population:
+    def speciate(self, new):
+        for g in new:
+            found = False
             for s in self.species:
                 g2 = s[0]
                 if self.distance(g, g2) < self.cut:
                     s.append(g)
+                    found = True
                     break
+            if not found:
+                self.species.append([g])
+        return self.species
 
     def distance(self, g1, g2, c1=1, c2=1): # TODO implement proper handeling of c1 and c2
         weights = []
@@ -47,9 +67,10 @@ class Enviorment():
                     yes = True
                     break
             if not yes:
-                exess_disjoint += 1
+                exess_disjoint += 1 # TODO currently only getting disjoint and exess genes of g1
         return c1 * (exess_disjoint/max(len(g1.genes), len(g2.genes))) + c2 * (sum(weights)/len(weights))
-    def _repop(self):
+
+    def _repop(self, s, nr):
         return None
 
     def _score_species(self, s):
