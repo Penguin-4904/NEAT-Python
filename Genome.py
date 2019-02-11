@@ -68,11 +68,24 @@ class Genome:
             self.genes.append(gene)
             self.innovation_nrs.append(gene.innovation)
 
-    def mutate(self, gene_chance, node_chance):
+    def mutate(self, weight_chance, gene_chance, node_chance):
+        if random.random() < weight_chance:
+            self._mutate_weight()
         if random.random() < gene_chance:
             self._mutate_gene()
         if random.random() < node_chance:
             self._mutate_node()
+
+    def _mutate_weight(self): # TODO Remove hard coding
+        for g in self.genes:
+            if random.random < .1:
+                g.weight = random.uniform(-1, 1)
+            else:
+                g.weight += random.gauss(0, .1)
+                if g.weight > 1:
+                    g.weight = 1
+                if g.weight < -1:
+                    g.weight = -1
 
     def _mutate_gene(self):
         in_node = random.choice(list(sum(self.layers[:-1], [])))
@@ -80,7 +93,7 @@ class Genome:
         ls = filter(None, ls)
         out_node = self.nodes.index(random.choice(ls))
         in_node = self.nodes.index(in_node)
-        weight = random.random()
+        weight = random.uniform(-1, 1)
         innovation = self.new_innovation(in_node, out_node)
         gene = Gene(in_node, out_node, weight, innovation)
         self._add_gene(gene)
