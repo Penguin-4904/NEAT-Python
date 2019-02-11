@@ -18,6 +18,7 @@ class Genome:
         # Bias Node
         self.nodes.append(Node(0))
         self.genes = []  # Never changes order
+        self.innovation_nrs = []
         self.layers = [self._get_input() + self._get_bias(), self._get_output()]
         self.score = 0
 
@@ -65,6 +66,7 @@ class Genome:
                     g.disable()
             # self.layers[self._find_layer(self.nodes[gene.in_node])].append(gene)
             self.genes.append(gene)
+            self.innovation_nrs.append(gene.innovation)
 
     def mutate(self, gene_chance, node_chance):
         if random.random() < gene_chance:
@@ -97,6 +99,21 @@ class Genome:
         self._add_gene(gene1)
         gene.disable()
 
+    def relayer(self):
+        for node in self.nodes:
+            node.after = []
+        for g in self.genes:
+            if g.in_node not in self.nodes[g.out_node].after:
+                self.nodes[g.out_node].after.append(g.in_node)
+                for node in self.nodes:
+                    if (g.out_node in node.after) and (g.in_node not in node.after):
+                        node.after.append(g.in_node)
+        self.layers = [self._get_input() + self._get_bias(), self.nodes[self.inputs + self.outputs + 1:],
+                       self._get_output()]
+        for node in self.layers[-2]:
+            self._move_node(node)
+
+
     def _find_layer(self, obj):
         for i, layer in enumerate(self.layers):  # TODO make more efficient
             if obj in layer:
@@ -112,13 +129,19 @@ class Genome:
         elif layer == 1:
             self._insert_layer(1, [node])
             self.layers[2].remove(node)
+            for i in node.after:
+                layeri = self._find_layer(self.nodes[i])
+                if layeri >= layer - 1: # Should never trigger but just in case.
+                    for n in range(layeri - (layer - 1)):
+                        self._move_node(self.nodes[i])
         else:
             self.layers[layer - 1].append(node)
             self.layers[layer].remove(node)
             for i in node.after:
-                if self._find_layer(self.nodes[i]) + 1 >= layer:
-                    self._move_node(self.nodes[i])
-        pass
+                layeri = self._find_layer(self.nodes[i])
+                if layeri >= layer - 1:
+                    for n in range(layeri - (layer - 1)):
+                        self._move_node(self.nodes[i])
 
     def reset(self):
         for node in self.nodes:

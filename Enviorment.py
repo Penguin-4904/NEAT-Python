@@ -1,3 +1,5 @@
+import copy
+
 from Genome import *
 
 class Enviorment():
@@ -17,6 +19,7 @@ class Enviorment():
     def create(self, nr):
         new = []
         for i in range(nr):
+            # TODO proper handling of possible functions.
             new.append(Genome(self.input, self.output, [identity], self.get_innovation))
         return self.speciate(new)
 
@@ -61,15 +64,14 @@ class Enviorment():
     def distance(self, g1, g2, c1=1, c2=1): # TODO implement proper handling of c1 and c2
         weights = []
         exess_disjoint = 0
-        for gene1 in g1.genes:
-            yes = False
-            for gene2 in g2.genes:
-                if gene1.innovation == gene2.innovation:
-                    weights.append(gene1.weight - gene2.weight)
-                    yes = True
-                    break
-            if not yes:
-                exess_disjoint += 1 # TODO currently only getting disjoint and exess genes of g1
+        for inno1 in g1.innovation_nrs:
+            if inno1 in g2.innovation_nrs:
+                weights.append(abs(g1.genes[g1.innovation_nrs.index(inno1)].weight - g2.genes[g2.innovation_nrs.index(inno1)].weight))
+            else:
+                exess_disjoint += 1
+        for inno2 in g2.innovation_nrs:
+            if inno2 not in g1.innovation_nrs:
+                exess_disjoint += 1
         return c1 * (exess_disjoint/max(len(g1.genes), len(g2.genes))) + c2 * (sum(weights)/len(weights))
 
     def _repop(self, s, nr):
@@ -82,9 +84,25 @@ class Enviorment():
 
     def crossover(self, g1, g2):
         fit = sorted([g1, g2], key=Genome.get_score())
-        fit_ratio = fit[0]/fit[1]
-
-        return None
+        fit_ratio = fit[0].score/(fit[1].score + fit[0].score)
+        new_nodes = copy.deepcopy(sorted([g1, g2], key=lambda x: len(x.nodes), reverse=True)[0])
+        new_genes = []
+        for g in fit[1].genes:
+            if random.random() > fit_ratio:
+                new_genes.append(copy.deepcopy(g))
+            elif g.innovation in fit[0].innovation_nrs:
+                new_genes.append(copy.deepcopy(fit[0].genes[fit[0].innovation_nrs.index(g.innovation)]))
+        for g in fit[0].genes:
+            if (g.innovation not in fit[1].innovation_nrs) and random.random() < fit_ratio:
+                new_genes.append(copy.deepcopy(g))
+        for g in new_genes:
+            if not g.enabled and random.random() > .75: # Random chance to reactivate genes.
+                g.enable()
+        b = Genome(self.input, self.output, [identity], self.get_innovation)
+        b.genes = new_genes
+        b.nodes = new_nodes
+        b.relayer()
+        return b
 
     def _value(self, g):
         return 0
