@@ -2,27 +2,31 @@ import numpy as np
 
 
 class Snake():
-    def __init__(self, board):
-        self.input = 8
-        self.output = 4
+    def __init__(self, board, goal):
+        self.input_size = 8
+        self.output_size = 4
         self.snake = [[int(board[0] / 2), int(board[1] / 2)]]
         self.fruit = []
         self.board = board
         self.score = 0
         self.new_fruit()
+        self.goal = goal
 
-    def run_genome(self, g):
+    def run_genome(self, g, save_replay = False):
         order = g.assemble()
         done = False
         time = 0
+        frames = []
         while not done:
             time += 1
             action = max(g.run(self.get_state(), order))
             self.act(action)
+            if save_replay:
+                frames.append([self.snake, self.fruit])
             done = self.is_dead()
-        score = self.score
+        score = (self.score + time)/(time + self.goal) # Rewards first and formost score and then staying alive, but also looks for efficiency after the goal is met.
         self.reset()
-        return score, time
+        return score, frames
 
     def act(self, action):
         if action == 0:
@@ -72,3 +76,8 @@ class Snake():
             # hit itself
             return True
         return False
+
+    def get_state(self):
+        # reeee
+
+        return

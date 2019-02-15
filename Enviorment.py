@@ -4,29 +4,35 @@ from Genome import *
 
 
 class Enviorment():
-    def __init__(self, game, top=1, cut=1/2, randomness=0, inno=0, carry=1, mutation_rates=[0.8, 0.05, 0.01]):
+    def __init__(self, game, fun=sig, keep=1, dist=1 / 2, randomness=0, inno=0, carry=1,
+                 mutation_rates=None):
+        if mutation_rates is None:
+            mutation_rates = [0.8, 0.05, 0.01]
         self.game = game
-
+        self.function = fun
         self.randomness = randomness
-        self.top = top
+        self.keep = keep
         self.population = []
         self.global_inno = inno
         self.input = game.input_size
         self.output = game.output_size
         self.prev_innovation = [[], []]
-        self.cut = cut
+        self.dist = dist
         self.species = []
         self.carry = carry
         self.mutation_rates = mutation_rates
+        self.time_weight = 1
+        self.generation = 0
 
     def create(self, nr):
         new = []
         for i in range(nr):
-            # TODO proper handling of possible functions.
-            new.append(Genome(self.input, self.output, [identity], self.get_innovation))
+            new.append(Genome(self.input, self.output, [self.function], self.get_innovation))
         return self.speciate(new)
 
-    def generation(self):
+    def generation(self, replay=None):
+        if replay is None:
+            replay = [0, 0]
         species_champ = []
         species_surv = []
         averages = []
@@ -34,13 +40,14 @@ class Enviorment():
         for s in self.species:
             for g in s:
                 g.score = (self.game.run_genome(g) * random.gauss(1, self.randomness)) / len(s)
-            s.sort(key=Genome.get_score(), reverse=True)
+            s.sort(key=lambda x: x.score, reverse=True)
             species_champ.append(s[:self.carry])
-            species_surv.append(s[:int(self.top * len(s))])
+            species_surv.append(s[:int(self.keep * len(s))])
             averages.append(sum(g.score for g in s))
         # Allocating and creating offspring
         new_population = []
         self.prev_innovation = [[], []]
+        old_species = self.species
         total = sum(averages)
         new_genome_nr = sum(len(s) for s in self.species)
         for i in range(len(species_surv)):
@@ -50,14 +57,41 @@ class Enviorment():
             new_population += (species_champ[:allocated][i] + new_genome)
         self.species = []
         self.speciate(new_population)
-        return self.species
+        self.generation += 1
+        # Returning things for replay.
+        if replay[0] == 0: # return only top species
+            if replay[1] == 0: # Only top player
+                return species_champ.sort(key=lambda x: x[0].score, reverse=True)[0][0]
+            if replay[1] == 1: # all Champions
+                return species_champ.sort(key=lambda x: x[0].score, reverse=True)[0]
+            if replay[1] == 2: # all survivors
+                return species_surv.sort(key=lambda x: x[0].score, reverse=True)[0]
+            if replay[1] == 3: # whole species
+                return old_species.sort(key=lambda x: x[0].score, reverse=True)[0]
+
+        if replay[0] == 1: # all species
+            if replay[1] == 0: # Only top player
+                return [x[0] for x in species_champ.sort(key=lambda x: x[0].score, reverse=True)]
+            if replay[1] == 1: # all Champions
+                return species_champ.sort(key=lambda x: x[0].score, reverse=True)
+            if replay[1] == 2: # all survivors
+                return species_surv.sort(key=lambda x: x[0].score, reverse=True)
+            if replay[1] == 3: # whole species
+                return old_species.sort(key=lambda x: x[0].score, reverse=True)
+        else:
+            return None
+
+    def score_genome(self, g):
+        score, frames = self.game.run_genome(g)
+        g.last_play = frames
+        return score
 
     def speciate(self, new):
         for g in new:
             found = False
             for s in self.species:
                 g2 = s[0]
-                if self.distance(g, g2) < self.cut:
+                if self.distance(g, g2) < self.dist:
                     s.append(g)
                     found = True
                     break

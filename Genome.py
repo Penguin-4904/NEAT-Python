@@ -21,6 +21,7 @@ class Genome:
         self.innovation_nrs = []
         self.layers = [self._get_input() + self._get_bias(), self._get_output()]
         self.score = 0
+        self.last_play = []
 
     def _assemble(self):
         """Returns the execution order for the neural net so it can go through feed forward"""
@@ -88,7 +89,7 @@ class Genome:
 
     def _mutate_gene(self):
         in_node = random.choice(list(sum(self.layers[:-1], [])))
-        ls = [x if i not in in_node.after else None for i, x in enumerate(self.nodes)]
+        ls = [x if i not in in_node.after and x != in_node else None for i, x in enumerate(self.nodes)]
         ls = filter(None, ls)
         out_node = self.nodes.index(random.choice(ls))
         in_node = self.nodes.index(in_node)
