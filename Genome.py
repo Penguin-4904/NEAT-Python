@@ -1,7 +1,7 @@
 import random
 from Node import *
 from Gene import *
-from Functions import identity
+from Functions import *
 
 
 class Genome:
@@ -16,7 +16,7 @@ class Genome:
         self.nodes = [Node(identity, []) for _ in range(inputs)]
         self.nodes += [Node(identity, self.nodes[:self.inputs]) for _ in range(outputs)]  # Never changes order
         # Bias Node
-        self.nodes.append(Node(0))
+        self.nodes.append(Node(bias))
         self.genes = []  # Never changes order
         self.innovation_nrs = []
         self.layers = [self._get_input() + self._get_bias(), self._get_output()]
@@ -32,10 +32,9 @@ class Genome:
                     exe_order.append(gene)
         return exe_order
 
-    def run(self, inputs):
+    def run(self, inputs, exe_order):
         for node, value in zip(self._get_input(), inputs):
             node.value = value
-        exe_order = self._assemble()
         for obj in exe_order:
             if type(obj) is Gene:
                 obj.value = self.nodes[obj.in_node].value

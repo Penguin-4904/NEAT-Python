@@ -4,14 +4,15 @@ from Genome import *
 
 
 class Enviorment():
-    def __init__(self, input, output, top, cut, randomness, inno=0, carry=1, mutation_rates=[0.8, 0.05, 0.01]):
+    def __init__(self, game, top=1, cut=1/2, randomness=0, inno=0, carry=1, mutation_rates=[0.8, 0.05, 0.01]):
+        self.game = game
 
         self.randomness = randomness
         self.top = top
         self.population = []
         self.global_inno = inno
-        self.input = input  # Shape of original genome
-        self.output = output
+        self.input = game.input_size
+        self.output = game.output_size
         self.prev_innovation = [[], []]
         self.cut = cut
         self.species = []
@@ -30,15 +31,16 @@ class Enviorment():
         species_surv = []
         averages = []
         # Raw scoring
-        for s in self.species:  # TODO add method to update score of each genome
+        for s in self.species:
             for g in s:
-                g.score = (g.score * random.gauss(1, self.randomness)) / len(s)
+                g.score = (self.game.run_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=Genome.get_score(), reverse=True)
             species_champ.append(s[:self.carry])
             species_surv.append(s[:int(self.top * len(s))])
             averages.append(sum(g.score for g in s))
         # Allocating and creating offspring
         new_population = []
+        self.prev_innovation = [[], []]
         total = sum(averages)
         new_genome_nr = sum(len(s) for s in self.species)
         for i in range(len(species_surv)):
@@ -47,7 +49,7 @@ class Enviorment():
             new_genome = self._repop(species_surv[i], allocated - len(species_champ[i]))
             new_population += (species_champ[:allocated][i] + new_genome)
         self.species = []
-        self.speciate(new_population)  # TODO reset innovation tracker
+        self.speciate(new_population)
         return self.species
 
     def speciate(self, new):
@@ -107,9 +109,6 @@ class Enviorment():
         b.relayer()
         b.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
         return b
-
-    def _value(self, g):
-        return 0
 
     def get_innovation(self, in_node, out_node):
 
