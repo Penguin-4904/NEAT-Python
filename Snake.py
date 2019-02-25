@@ -11,20 +11,27 @@ class Snake():
         self.score = 0
         self.new_fruit()
         self.goal = goal
+        self.max_time = board[0] * board[1]
 
-    def run_genome(self, g, save_replay = False):
+    def run_genome(self, g, save_replay=False):
         order = g.assemble()
         done = False
         time = 0
+        last_time = 0
         frames = []
         while not done:
             time += 1
             action = max(g.run(self.get_state(), order))
-            self.act(action)
+            if self.act(action):
+                last_time = time
             if save_replay:
                 frames.append([self.snake, self.fruit])
             done = self.is_dead()
-        score = (self.score + time)/(time + self.goal) # Rewards first and formost score and then staying alive, but also looks for efficiency after the goal is met.
+            if time - last_time >= self.max_time:
+                done = True  # hasen't gotten a fruit in a while but should have been able to.
+        score = (self.score + time)/(time + self.goal)
+        # Rewards first and formost score and then staying alive,
+        # but also looks for efficiency after the goal is met.
         self.reset()
         return score, frames
 
@@ -43,17 +50,17 @@ class Snake():
             # move left
         else:
             print("Not an Action")
-            return
+            return False
 
         if snake[-1] == self.fruit:
             self.score += 1
             self.snake = snake
             self.new_fruit()
-            return
+            return True
             # landed on fruit
         else:
             self.snake = snake[1:]
-            return
+            return False
 
     def reset(self):
         self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2)]]
@@ -64,7 +71,7 @@ class Snake():
         grid = np.vstack(np.meshgrid(np.linspace(0, self.board[0], num=self.board[0], endpoint=False),
                                      np.linspace(0, self.board[1], num=self.board[1], endpoint=False))).T
         for p in self.snake:
-            grid.remove(p) # TODO can be made more efficient using numpy
+            grid.remove(p) # make more efficient
         self.fruit = np.random.choice(grid)
 
     def is_dead(self):

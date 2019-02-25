@@ -4,8 +4,10 @@ from Genome import *
 
 
 class Enviorment():
-    def __init__(self, game, fun=sig, keep=1, dist=1 / 2, randomness=0, inno=0, carry=1,
+    def __init__(self, game, fun=sig, keep=1, dist=None, randomness=0, inno=0, carry=1,
                  mutation_rates=None):
+        if dist is None:
+            dist = [1 / 2, 1, 1]
         if mutation_rates is None:
             mutation_rates = [0.8, 0.05, 0.01]
         self.game = game
@@ -17,18 +19,18 @@ class Enviorment():
         self.input = game.input_size
         self.output = game.output_size
         self.prev_innovation = [[], []]
-        self.dist = dist
+        self.dist = dist[0]
+        self.c1 = dist[1]
+        self.c2 = dist[2]
         self.species = []
         self.carry = carry
         self.mutation_rates = mutation_rates
-        self.time_weight = 1
         self.generation = 0
 
     def create(self, nr):
         new = []
         for i in range(nr):
-            new.append(Genome(self.input, self.output, [self.function], self.get_innovation))
-            # TODO clean up function handling.
+            new.append(Genome(self.input, self.output, self.function, self.get_innovation))
         return self.speciate(new)
 
     def generation(self, replay=None):
@@ -59,7 +61,6 @@ class Enviorment():
         self.species = []
         self.speciate(new_population)
         self.generation += 1
-        # TODO for snake game adjust goal.
         # Returning things for replay.
         if replay[0] == 0: # return only top species
             if replay[1] == 0: # Only top player
@@ -101,7 +102,7 @@ class Enviorment():
                 self.species.append([g])
         return self.species
 
-    def distance(self, g1, g2, c1=1, c2=1):  # TODO implement proper handling of c1 and c2
+    def distance(self, g1, g2):
         weights = []
         exess_disjoint = 0
         for inno1 in g1.innovation_nrs:
@@ -113,7 +114,7 @@ class Enviorment():
         for inno2 in g2.innovation_nrs:
             if inno2 not in g1.innovation_nrs:
                 exess_disjoint += 1
-        return c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes))) + c2 * (sum(weights) / len(weights))
+        return self.c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes))) + self.c2 * (sum(weights) / len(weights))
 
     def _repop(self, s, nr):
         if nr < 1:

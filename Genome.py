@@ -100,8 +100,7 @@ class Genome:
 
     def _mutate_node(self):
         gene = random.choice(self.genes)
-        func = random.choice(self.functions)
-        node = Node(func, self.nodes[gene.in_node].after)
+        node = Node(self.functions, self.nodes[gene.in_node].after)
         i = len(self.nodes)
         self.nodes[gene.out_node].after.append(i)
         self.nodes.append(node)
