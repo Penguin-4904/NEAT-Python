@@ -25,12 +25,13 @@ class Enviorment():
         self.species = []
         self.carry = carry
         self.mutation_rates = mutation_rates
-        self.generation = 0
+        self.generation_num = 0
 
     def create(self, nr):
         new = []
         for i in range(nr):
             new.append(Genome(self.input, self.output, self.function, self.get_innovation))
+            new[-1].complete_connect()
         return self.speciate(new)
 
     def generation(self, replay=None):
@@ -42,7 +43,7 @@ class Enviorment():
         # Raw scoring
         for s in self.species:
             for g in s:
-                g.score = (self.game.run_genome(g) * random.gauss(1, self.randomness)) / len(s)
+                g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
             species_champ.append(s[:self.carry])
             species_surv.append(s[:int(self.keep * len(s))])
@@ -60,7 +61,7 @@ class Enviorment():
             new_population += (species_champ[:allocated][i] + new_genome)
         self.species = []
         self.speciate(new_population)
-        self.generation += 1
+        self.generation_num += 1
         # Returning things for replay.
         if replay[0] == 0: # return only top species
             if replay[1] == 0: # Only top player
@@ -125,9 +126,9 @@ class Enviorment():
         return genome
 
     def crossover(self, g1, g2):
-        fit = sorted([g1, g2], key=Genome.get_score())
+        fit = sorted([g1, g2], key=lambda genome: genome.get_score())
         fit_ratio = fit[0].score / (fit[1].score + fit[0].score)
-        new_nodes = copy.deepcopy(sorted([g1, g2], key=lambda x: len(x.nodes), reverse=True)[0])
+        new_nodes = copy.deepcopy(sorted([g1, g2], key=lambda x: len(x.nodes), reverse=True)[0].nodes)
         new_genes = []
         for g in fit[1].genes:
             if random.random() > fit_ratio:

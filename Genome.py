@@ -19,11 +19,18 @@ class Genome:
         self.nodes.append(Node(bias))
         self.genes = []  # Never changes order
         self.innovation_nrs = []
-        self.layers = [self._get_input() + self._get_bias(), self._get_output()]
+        self.layers = [self._get_input() + [self._get_bias()], self._get_output()]
         self.score = 0
         self.last_play = []
 
-    def _assemble(self):
+    def complete_connect(self): # call after creation to make completely connected
+        for node_in in self.layers[0]:
+            for node_out in self.layers[1]:
+                gene = Gene(self.nodes.index(node_in), self.nodes.index(node_out), random.uniform(0, 1),
+                            self.new_innovation(self.nodes.index(node_in), self.nodes.index(node_out)))
+                self._add_gene(gene)
+
+    def assemble(self):
         """Returns the execution order for the neural net so it can go through feed forward"""
         exe_order = []
         for layer in self.layers:
@@ -91,6 +98,9 @@ class Genome:
         in_node = random.choice(list(sum(self.layers[:-1], [])))
         ls = [x if i not in in_node.after and x != in_node else None for i, x in enumerate(self.nodes)]
         ls = filter(None, ls)
+        if len(ls) == 0:
+            print("no possible connections")
+            return None
         out_node = self.nodes.index(random.choice(ls))
         in_node = self.nodes.index(in_node)
         weight = random.uniform(-1, 1)
@@ -120,7 +130,7 @@ class Genome:
                 for node in self.nodes:
                     if (g.out_node in node.after) and (g.in_node not in node.after):
                         node.after.append(g.in_node)
-        self.layers = [self._get_input() + self._get_bias(), self.nodes[self.inputs + self.outputs + 1:],
+        self.layers = [self._get_input() + [self._get_bias()], self.nodes[self.inputs + self.outputs + 1:],
                        self._get_output()]
         for node in self.layers[-2]:
             self._move_node(node)
