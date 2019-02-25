@@ -76,7 +76,7 @@ class Genome:
         if random.random() < node_chance:
             self._mutate_node()
 
-    def _mutate_weight(self): # TODO Remove hard coding
+    def _mutate_weight(self):  # TODO Remove hard coding
         for g in self.genes:
             if random.random < .1:
                 g.weight = random.uniform(-1, 1)
@@ -126,7 +126,6 @@ class Genome:
         for node in self.layers[-2]:
             self._move_node(node)
 
-
     def _find_layer(self, obj):
         for i, layer in enumerate(self.layers):  # TODO make more efficient
             if obj in layer:
@@ -144,7 +143,7 @@ class Genome:
             self.layers[2].remove(node)
             for i in node.after:
                 layeri = self._find_layer(self.nodes[i])
-                if layeri >= layer - 1: # Should never trigger but just in case.
+                if layeri >= layer - 1:  # Should never trigger but just in case.
                     for n in range(layeri - (layer - 1)):
                         self._move_node(self.nodes[i])
         else:

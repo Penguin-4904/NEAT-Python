@@ -28,6 +28,7 @@ class Enviorment():
         new = []
         for i in range(nr):
             new.append(Genome(self.input, self.output, [self.function], self.get_innovation))
+            # TODO clean up function handling.
         return self.speciate(new)
 
     def generation(self, replay=None):
@@ -58,6 +59,7 @@ class Enviorment():
         self.species = []
         self.speciate(new_population)
         self.generation += 1
+        # TODO for snake game adjust goal.
         # Returning things for replay.
         if replay[0] == 0: # return only top species
             if replay[1] == 0: # Only top player
@@ -71,7 +73,7 @@ class Enviorment():
 
         if replay[0] == 1: # all species
             if replay[1] == 0: # Only top player
-                return [x[0] for x in species_champ.sort(key=lambda x: x[0].score, reverse=True)]
+                return [s[0] for s in species_champ.sort(key=lambda x: x[0].score, reverse=True)]
             if replay[1] == 1: # all Champions
                 return species_champ.sort(key=lambda x: x[0].score, reverse=True)
             if replay[1] == 2: # all survivors
