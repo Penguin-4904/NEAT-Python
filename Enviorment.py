@@ -65,28 +65,28 @@ class Enviorment():
         # Returning things for replay.
         if replay[0] == 0: # return only top species
             if replay[1] == 0: # Only top player
-                return species_champ.sort(key=lambda x: x[0].score, reverse=True)[0][0]
+                return sorted(species_champ, key=lambda x: x[0].score, reverse=True)[0][0]
             if replay[1] == 1: # all Champions
-                return species_champ.sort(key=lambda x: x[0].score, reverse=True)[0]
+                return sorted(species_champ, key=lambda x: x[0].score, reverse=True)[0]
             if replay[1] == 2: # all survivors
-                return species_surv.sort(key=lambda x: x[0].score, reverse=True)[0]
+                return sorted(species_surv, key=lambda x: x[0].score, reverse=True)[0]
             if replay[1] == 3: # whole species
-                return old_species.sort(key=lambda x: x[0].score, reverse=True)[0]
+                return sorted(old_species, key=lambda x: x[0].score, reverse=True)[0]
 
         if replay[0] == 1: # all species
             if replay[1] == 0: # Only top player
-                return [s[0] for s in species_champ.sort(key=lambda x: x[0].score, reverse=True)]
+                return [s[0] for s in sorted(species_champ, key=lambda x: x[0].score, reverse=True)]
             if replay[1] == 1: # all Champions
-                return species_champ.sort(key=lambda x: x[0].score, reverse=True)
+                return sorted(species_champ, key=lambda x: x[0].score, reverse=True)
             if replay[1] == 2: # all survivors
-                return species_surv.sort(key=lambda x: x[0].score, reverse=True)
+                return sorted(species_surv, key=lambda x: x[0].score, reverse=True)
             if replay[1] == 3: # whole species
-                return old_species.sort(key=lambda x: x[0].score, reverse=True)
+                return sorted(old_species, key=lambda x: x[0].score, reverse=True)
         else:
             return None
 
     def score_genome(self, g):
-        score, frames = self.game.run_genome(g)
+        score, frames = self.game.run_genome(g, save_replay=True)
         g.last_play = frames
         return score
 
@@ -115,6 +115,8 @@ class Enviorment():
         for inno2 in g2.innovation_nrs:
             if inno2 not in g1.innovation_nrs:
                 exess_disjoint += 1
+        if len(weights) == 0:
+            return self.c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes)))
         return self.c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes))) + self.c2 * (sum(weights) / len(weights))
 
     def _repop(self, s, nr):

@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 
@@ -5,9 +7,9 @@ class Snake():
     def __init__(self, board, goal):
         self.input_size = 4
         self.output_size = 4
-        self.snake = [[int(board[0] / 2), int(board[1] / 2)]]
         self.fruit = []
         self.board = board
+        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2], [int(self.board[0] / 2), int(self.board[1] / 2) - 1], [int(self.board[0] / 2), int(self.board[1] / 2)]]
         self.score = 0
         self.new_fruit()
         self.goal = goal
@@ -25,7 +27,7 @@ class Snake():
             if self.act(action):
                 last_time = time
             if save_replay:
-                frames.append([self.snake, self.fruit])
+                frames.append(copy.deepcopy([self.snake, self.fruit, self.score, action]))
             done = self.is_dead()
             if time - last_time >= self.max_time:
                 done = True  # hasen't gotten a fruit in a while but should have been able to.
@@ -62,18 +64,18 @@ class Snake():
             return False
 
     def reset(self):
-        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2)]]
+        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2], [int(self.board[0] / 2), int(self.board[1] / 2) - 1], [int(self.board[0] / 2), int(self.board[1] / 2)]]
         self.score = 0
         self.new_fruit()
 
     def new_fruit(self):
         grid = np.vstack((np.meshgrid(np.linspace(0, self.board[0], num=self.board[0], endpoint=False),
-                                     np.linspace(0, self.board[1], num=self.board[1], endpoint=False))[0].flatten(),
+                                      np.linspace(0, self.board[1], num=self.board[1], endpoint=False))[0].flatten(),
                           np.meshgrid(np.linspace(0, self.board[0], num=self.board[0], endpoint=False),
-                                     np.linspace(0, self.board[1], num=self.board[1], endpoint=False))[1].flatten())).T
+                                      np.linspace(0, self.board[1], num=self.board[1], endpoint=False))[1].flatten())).T
         for p in self.snake:
             np.delete(grid, np.where(np.all(grid == np.array(p), axis=1)))  # make more efficient
-        self.fruit = grid[np.random.randint(grid.shape[0])]
+        self.fruit = list(grid[np.random.randint(grid.shape[0])])
 
     def is_dead(self):
         if self.snake[-1][0] >= self.board[0] or self.snake[-1][1] >= self.board[1] or self.snake[-1][1] < 0 or \
@@ -95,8 +97,10 @@ class Snake():
         # if value is positive then it indicates that it sees the fruit there else it sees wall or itself
 
         # up
+
         see_up = []
         up_dist = self.snake[-1][1] - self.board[1]
+
         for s in self.snake[:-1]:
             if (s[0] - self.snake[-1][0]) == 0 and (s[1] - self.snake[-1][1]) > 0:
                 see_up.append(s)
@@ -105,6 +109,9 @@ class Snake():
         see_up.sort(key=lambda x: x[1] - self.snake[-1][1])
         if len(see_up) > 0:
             up_dist = self.snake[-1][1] - see_up[0][1]
+            print(up_dist)
+            print(self.fruit)
+            print(self.snake[-1])
             if (self.fruit in see_up) and up_dist == (self.snake[-1][1] - self.fruit[1]):
                 up_dist = -up_dist
 
@@ -119,6 +126,9 @@ class Snake():
         see_right.sort(key=lambda x: x[0] - self.snake[-1][0])
         if len(see_right) > 0:
             right_dist = self.snake[-1][0] - see_right[0][0]
+            print(right_dist)
+            print(self.fruit)
+            print(self.snake[-1])
             if (self.fruit in see_right) and right_dist == (self.snake[-1][0] - self.fruit[0]):
                 right_dist = -right_dist
 
@@ -133,6 +143,9 @@ class Snake():
         see_down.sort(key=lambda x: self.snake[-1][1] - x[1])
         if len(see_down) > 0:
             down_dist = -(self.snake[-1][1] - see_down[0][1])
+            print(down_dist)
+            print(self.fruit)
+            print(self.snake[-1])
             if (self.fruit in see_down) and down_dist == (self.snake[-1][1] - self.fruit[1]):
                 down_dist = -down_dist
 
@@ -147,7 +160,25 @@ class Snake():
         see_left.sort(key=lambda x: self.snake[-1][0] - x[0])
         if len(see_left) > 0:
             left_dist = -(self.snake[-1][0] - see_left[0][0])
+            print(left_dist)
+            print(self.fruit)
+            print(self.snake[-1])
             if (self.fruit in see_left) and left_dist == (self.snake[-1][0] - self.fruit[0]):
                 left_dist = -left_dist
 
         return [up_dist, right_dist, down_dist, left_dist]
+
+    def print_frame(self, frame):
+        board = np.full(self.board, '.')
+        snake = frame[0]
+        fruit = frame[1]
+
+        for s in snake:
+            board[s[0]][s[1]] = '*'
+
+        board[int(fruit[0])][int(fruit[1])] = '+'
+
+        string = '\n'.join('\t'.join(x for x in y) for y in board)
+        print("Action: {}".format(frame[3]))
+        print("Score raw: {}".format(frame[2]))
+        print(string)

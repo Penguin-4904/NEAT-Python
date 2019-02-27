@@ -85,7 +85,7 @@ class Genome:
 
     def _mutate_weight(self):  # TODO Remove hard coding
         for g in self.genes:
-            if random.random < .1:
+            if random.random() < .1:
                 g.weight = random.uniform(-1, 1)
             else:
                 g.weight += random.gauss(0, .1)
@@ -96,8 +96,9 @@ class Genome:
 
     def _mutate_gene(self):
         in_node = random.choice(list(sum(self.layers[:-1], [])))
-        ls = [x if i not in in_node.after and x != in_node else None for i, x in enumerate(self.nodes)]
-        ls = filter(None, ls)
+        connections = [self.nodes[gene.out_node] if self.nodes[gene.in_node] == in_node else None for gene in self.genes]
+        ls = [x if self.nodes.index(x) not in in_node.after and x not in connections and x != in_node else None for l in self.layers[1:] for x in l]
+        ls = list(filter(None, ls))
         if len(ls) == 0:
             print("no possible connections")
             return None
