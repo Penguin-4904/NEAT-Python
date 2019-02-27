@@ -109,9 +109,6 @@ class Snake():
         see_up.sort(key=lambda x: x[1] - self.snake[-1][1])
         if len(see_up) > 0:
             up_dist = self.snake[-1][1] - see_up[0][1]
-            print(up_dist)
-            print(self.fruit)
-            print(self.snake[-1])
             if (self.fruit in see_up) and up_dist == (self.snake[-1][1] - self.fruit[1]):
                 up_dist = -up_dist
 
@@ -126,9 +123,6 @@ class Snake():
         see_right.sort(key=lambda x: x[0] - self.snake[-1][0])
         if len(see_right) > 0:
             right_dist = self.snake[-1][0] - see_right[0][0]
-            print(right_dist)
-            print(self.fruit)
-            print(self.snake[-1])
             if (self.fruit in see_right) and right_dist == (self.snake[-1][0] - self.fruit[0]):
                 right_dist = -right_dist
 
@@ -143,9 +137,6 @@ class Snake():
         see_down.sort(key=lambda x: self.snake[-1][1] - x[1])
         if len(see_down) > 0:
             down_dist = -(self.snake[-1][1] - see_down[0][1])
-            print(down_dist)
-            print(self.fruit)
-            print(self.snake[-1])
             if (self.fruit in see_down) and down_dist == (self.snake[-1][1] - self.fruit[1]):
                 down_dist = -down_dist
 
@@ -160,9 +151,6 @@ class Snake():
         see_left.sort(key=lambda x: self.snake[-1][0] - x[0])
         if len(see_left) > 0:
             left_dist = -(self.snake[-1][0] - see_left[0][0])
-            print(left_dist)
-            print(self.fruit)
-            print(self.snake[-1])
             if (self.fruit in see_left) and left_dist == (self.snake[-1][0] - self.fruit[0]):
                 left_dist = -left_dist
 
@@ -174,9 +162,10 @@ class Snake():
         fruit = frame[1]
 
         for s in snake:
-            board[s[0]][s[1]] = '*'
+            if 0 <= s[0] < self.board[0] and 0 <= s[1] < self.board[0]:
+                board[s[0]][s[1]] = 'o'
 
-        board[int(fruit[0])][int(fruit[1])] = '+'
+        board[int(fruit[0])][int(fruit[1])] = '@'
 
         string = '\n'.join('\t'.join(x for x in y) for y in board)
         print("Action: {}".format(frame[3]))
