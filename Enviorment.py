@@ -143,7 +143,7 @@ class Enviorment():
         for g in new_genes:
             if not g.enabled and random.random() > .75:  # Random chance to reactivate genes.
                 g.enable()
-        b = Genome(self.input, self.output, [identity], self.get_innovation)
+        b = Genome(self.input, self.output, self.function, self.get_innovation)
         b.genes = new_genes
         b.nodes = new_nodes
         b.relayer()
