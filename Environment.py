@@ -1,9 +1,7 @@
-import copy
-
 from Genome import *
 
 
-class Enviorment():
+class Environment:
     def __init__(self, game, fun=sig, keep=1, dist=None, randomness=0, inno=0, carry=1,
                  mutation_rates=None):
         if dist is None:
@@ -63,24 +61,24 @@ class Enviorment():
         self.speciate(new_population)
         self.generation_num += 1
         # Returning things for replay.
-        if replay[0] == 0: # return only top species
-            if replay[1] == 0: # Only top player
+        if replay[0] == 0:  # return only top species
+            if replay[1] == 0:  # Only top player
                 return sorted(species_champ, key=lambda x: x[0].score, reverse=True)[0][0]
-            if replay[1] == 1: # all Champions
+            if replay[1] == 1:  # all Champions
                 return sorted(species_champ, key=lambda x: x[0].score, reverse=True)[0]
-            if replay[1] == 2: # all survivors
+            if replay[1] == 2:  # all survivors
                 return sorted(species_surv, key=lambda x: x[0].score, reverse=True)[0]
-            if replay[1] == 3: # whole species
+            if replay[1] == 3:  # whole species
                 return sorted(old_species, key=lambda x: x[0].score, reverse=True)[0]
 
-        if replay[0] == 1: # all species
-            if replay[1] == 0: # Only top player
+        if replay[0] == 1:  # all species
+            if replay[1] == 0:  # Only top player
                 return [s[0] for s in sorted(species_champ, key=lambda x: x[0].score, reverse=True)]
-            if replay[1] == 1: # all Champions
+            if replay[1] == 1:  # all Champions
                 return sorted(species_champ, key=lambda x: x[0].score, reverse=True)
-            if replay[1] == 2: # all survivors
+            if replay[1] == 2:  # all survivors
                 return sorted(species_surv, key=lambda x: x[0].score, reverse=True)
-            if replay[1] == 3: # whole species
+            if replay[1] == 3:  # whole species
                 return sorted(old_species, key=lambda x: x[0].score, reverse=True)
         else:
             return None

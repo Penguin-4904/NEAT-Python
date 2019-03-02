@@ -1,8 +1,8 @@
-from Enviorment import Enviorment
+from Environment import Environment
 from Snake import Snake
 
 snake = Snake([10, 10], 9)
-test = Enviorment(snake, dist=[5, 1, .2], mutation_rates=[0.8, 0.05, 0.01])
+test = Environment(snake, dist=[5, 1, .2], mutation_rates=[0.8, 0.05, 0.01])
 print(type(test))
 test.create(100)
 
@@ -11,8 +11,8 @@ for i in range(100):
     print("Generation: {}".format(i))
 
 print(len(test.species))
-champ = test.generation(replay=[1,0])
-#print(champ[1].last_play)
+champ = test.generation(replay=[1, 0])
+# print(champ[1].last_play)
 
 for i, f in enumerate(champ[1].last_play):
     print("New Frame: {}".format(i))

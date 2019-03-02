@@ -3,13 +3,15 @@ import copy
 import numpy as np
 
 
-class Snake():
+class Snake:
     def __init__(self, board, goal):
         self.input_size = 4
         self.output_size = 4
         self.fruit = []
         self.board = board
-        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2], [int(self.board[0] / 2), int(self.board[1] / 2) - 1], [int(self.board[0] / 2), int(self.board[1] / 2)]]
+        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2],
+                      [int(self.board[0] / 2), int(self.board[1] / 2) - 1],
+                      [int(self.board[0] / 2), int(self.board[1] / 2)]]
         self.score = 0
         self.new_fruit()
         self.goal = goal
@@ -64,7 +66,9 @@ class Snake():
             return False
 
     def reset(self):
-        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2], [int(self.board[0] / 2), int(self.board[1] / 2) - 1], [int(self.board[0] / 2), int(self.board[1] / 2)]]
+        self.snake = [[int(self.board[0] / 2), int(self.board[1] / 2) - 2],
+                      [int(self.board[0] / 2), int(self.board[1] / 2) - 1],
+                      [int(self.board[0] / 2), int(self.board[1] / 2)]]
         self.score = 0
         self.new_fruit()
 

@@ -1,9 +1,11 @@
 
 class Node:
-    def __init__(self, func, after=[]):
+    def __init__(self, func, after=None):
+        if after is None:
+            after = []
         self.value = 0
         self.func = func
-        self.after = after # which nodes this nodes can not run simultaneously with or before
+        self.after = after  # which nodes this nodes can not run simultaneously with or before
 
     def run(self):
         self.value = self.func(self.value)
