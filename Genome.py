@@ -1,3 +1,4 @@
+import copy
 import random
 from Node import *
 from Gene import *
@@ -110,7 +111,7 @@ class Genome:
         self._add_gene(gene)
 
     def _mutate_node(self):
-        gene = random.choice(self.genes)
+        gene = random.choice(filter(lambda g: g.enabled, self.genes))
         node = Node(self.functions, self.nodes[gene.in_node].after)
         i = len(self.nodes)
         self.nodes[gene.out_node].after.append(i)
@@ -128,13 +129,21 @@ class Genome:
         for g in self.genes:
             if g.in_node not in self.nodes[g.out_node].after:
                 self.nodes[g.out_node].after.append(g.in_node)
-                for node in self.nodes:
-                    if (g.out_node in node.after) and (g.in_node not in node.after):
-                        node.after.append(g.in_node)
+        for node in self.nodes:
+            node.after = self._recursive_relayer(node)
         self.layers = [self._get_input() + [self._get_bias()], self.nodes[self.inputs + self.outputs + 1:],
                        self._get_output()]
         for node in self.layers[-2]:
             self._move_node(node)
+
+    def _recursive_relayer(self, n):
+        after = copy.copy(n.after)
+        for a in n.after:
+            for i in self._recursive_relayer(self.nodes[a]):
+                if i not in after:
+                    after.append(i)
+        return after
+
 
     def _find_layer(self, obj):
         for i, layer in enumerate(self.layers):  # TODO make more efficient
@@ -153,7 +162,7 @@ class Genome:
             self.layers[2].remove(node)
             for i in node.after:
                 layeri = self._find_layer(self.nodes[i])
-                if layeri >= layer - 1:  # Should never trigger but just in case.
+                if layeri >= layer:  # Should never trigger but just in case.
                     for n in range(layeri - (layer - 1)):
                         self._move_node(self.nodes[i])
         else:
@@ -171,7 +180,7 @@ class Genome:
 
     def _insert_layer(self, layer_nr, layer):
         """layer is the layer below which to insert a layer"""
-        self.layers.insert(layer_nr + 1, layer)
+        self.layers.insert(layer_nr, layer)
 
     def _get_bias(self):
         return self.nodes[self.inputs + self.outputs]

@@ -139,7 +139,7 @@ class Enviorment():
                 new_genes.append(copy.deepcopy(fit[0].genes[fit[0].innovation_nrs.index(g.innovation)]))
         for g in fit[0].genes:
             if (g.innovation not in fit[1].innovation_nrs) and random.random() < fit_ratio:
-                new_genes.append(copy.deepcopy(g))
+                new_genes.append(copy.deepcopy(g))  # TODO Check to prevent circles
         for g in new_genes:
             if not g.enabled and random.random() > .75:  # Random chance to reactivate genes.
                 g.enable()
