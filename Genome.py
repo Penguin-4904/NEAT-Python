@@ -24,7 +24,7 @@ class Genome:
         self.score = 0
         self.last_play = []
 
-    def complete_connect(self): # call after creation to make completely connected
+    def complete_connect(self):  # call after creation to make completely connected
         for node_in in self.layers[0]:
             for node_out in self.layers[1]:
                 gene = Gene(self.nodes.index(node_in), self.nodes.index(node_out), random.uniform(0, 1),
@@ -97,8 +97,10 @@ class Genome:
 
     def _mutate_gene(self):
         in_node = random.choice(list(sum(self.layers[:-1], [])))
-        connections = [self.nodes[gene.out_node] if self.nodes[gene.in_node] == in_node else None for gene in self.genes]
-        ls = [x if self.nodes.index(x) not in in_node.after and x not in connections and x != in_node else None for l in self.layers[1:] for x in l]
+        connections = [self.nodes[gene.out_node] if self.nodes[gene.in_node] == in_node else None for gene in
+                       self.genes]
+        ls = [x if self.nodes.index(x) not in in_node.after and x not in connections and x != in_node else None for l in
+              self.layers[1:] for x in l]
         ls = list(filter(None, ls))
         if len(ls) == 0:
             print("no possible connections")
@@ -143,7 +145,6 @@ class Genome:
                 if i not in after:
                     after.append(i)
         return after
-
 
     def _find_layer(self, obj):
         for i, layer in enumerate(self.layers):  # TODO make more efficient
