@@ -99,9 +99,11 @@ class Genome:
         in_node = random.choice(list(sum(self.layers[:-1], [])))
         connections = [self.nodes[gene.out_node] if self.nodes[gene.in_node] == in_node else None for gene in
                        self.genes]
-        ls = [x if self.nodes.index(x) not in in_node.after and x not in connections and x != in_node else None for l in
-              self.layers[1:] for x in l]
-        ls = list(filter(None, ls))
+        ls = filter(lambda x: True if (self.nodes.index(x) not in in_node.after)
+                    and (x not in connections) and (x != in_node)
+                    and (x not in self._get_input() + [self._get_bias()]) else False,
+                    self.nodes)
+        ls = list(ls)
         if len(ls) == 0:
             print("no possible connections")
             return None
@@ -113,7 +115,7 @@ class Genome:
         self._add_gene(gene)
 
     def _mutate_node(self):
-        gene = random.choice(filter(lambda g: g.enabled, self.genes))
+        gene = random.choice(list(filter(lambda g: g.enabled, self.genes)))
         node = Node(self.functions, self.nodes[gene.in_node].after)
         i = len(self.nodes)
         self.nodes[gene.out_node].after.append(i)

@@ -126,7 +126,7 @@ class Environment:
         return genome
 
     def crossover(self, g1, g2):
-        fit = sorted([g1, g2], key=lambda genome: genome.get_score())
+        fit = sorted([g1, g2], key=lambda genome: genome.score)
         fit_ratio = fit[0].score / (fit[1].score + fit[0].score)
         new_nodes = copy.deepcopy(sorted([g1, g2], key=lambda x: len(x.nodes), reverse=True)[0].nodes)
         new_genes = []
@@ -135,16 +135,18 @@ class Environment:
                 new_genes.append(copy.deepcopy(g))
             elif g.innovation in fit[0].innovation_nrs:
                 new_genes.append(copy.deepcopy(fit[0].genes[fit[0].innovation_nrs.index(g.innovation)]))
-        for g in fit[0].genes:
-            if (g.innovation not in fit[1].innovation_nrs) and random.random() < fit_ratio:
-                new_genes.append(copy.deepcopy(g))  # TODO Check to prevent circles
-        for g in new_genes:
-            if not g.enabled and random.random() > .75:  # Random chance to reactivate genes.
-                g.enable()
         b = Genome(self.input, self.output, self.function, self.get_innovation)
         b.genes = new_genes
         b.nodes = new_nodes
         b.relayer()
+        for g in fit[0].genes:
+            if (g.innovation not in fit[1].innovation_nrs) and random.random() < fit_ratio:
+                b._add_gene(copy.deepcopy(g))  # TODO Check to prevent circles
+        for g in b.genes:
+            if not g.enabled and random.random() > .75:  # Random chance to reactivate genes.
+                g.enable()
+        for g in b.genes:
+            b.innovation_nrs.append(g.innovation)
         b.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
         return b
 
