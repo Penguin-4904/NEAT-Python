@@ -62,10 +62,13 @@ class Genome:
             print("connection gene not valid")
             return False
         else:
-            self.nodes[gene.out_node].after.append(gene.in_node)
+            after = list(set(self.nodes[gene.out_node].after + self.nodes[gene.in_node].after))
+            self.nodes[gene.out_node].after = copy.copy(after)
             for node in self.nodes:
                 if gene.out_node in node.after:
-                    node.after.append(gene.in_node)
+                    after = list(set(node.after + self.nodes[gene.in_node].after))
+                    node.after = copy.copy(after)
+
             while self._find_layer(self.nodes[gene.in_node]) >= self._find_layer(self.nodes[gene.out_node]):
                 self._move_node(self.nodes[gene.in_node])
 
@@ -98,14 +101,14 @@ class Genome:
     def _mutate_gene(self):
         in_node = random.choice(list(sum(self.layers[:-1], [])))
         connections = [self.nodes[gene.out_node] if self.nodes[gene.in_node] == in_node else None for gene in
-                       self.genes]
+                       self.genes]  # TODO make better
         ls = filter(lambda x: True if (self.nodes.index(x) not in in_node.after)
                     and (x not in connections) and (x != in_node)
                     and (x not in self._get_input() + [self._get_bias()]) else False,
                     self.nodes)
         ls = list(ls)
         if len(ls) == 0:
-            print("no possible connections")
+            # print("no possible connections")
             return None
         out_node = self.nodes.index(random.choice(ls))
         in_node = self.nodes.index(in_node)
@@ -116,7 +119,7 @@ class Genome:
 
     def _mutate_node(self):
         gene = random.choice(list(filter(lambda g: g.enabled, self.genes)))
-        node = Node(self.functions, self.nodes[gene.in_node].after)
+        node = Node(self.functions, self.nodes[gene.in_node].after + [gene.in_node])
         i = len(self.nodes)
         self.nodes[gene.out_node].after.append(i)
         self.nodes.append(node)

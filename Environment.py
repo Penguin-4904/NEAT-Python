@@ -128,27 +128,48 @@ class Environment:
     def crossover(self, g1, g2):
         fit = sorted([g1, g2], key=lambda genome: genome.score)
         fit_ratio = fit[0].score / (fit[1].score + fit[0].score)
-        new_nodes = copy.deepcopy(sorted([g1, g2], key=lambda x: len(x.nodes), reverse=True)[0].nodes)
+        new_genome = Genome(self.input, self.output, self.function, self.get_innovation)
+        # lining up genes
+
+        genome_pairs = []
+        for i1, g1 in enumerate(fit[0].genes):
+            for i2, g2 in enumerate(fit[1].genes):
+                if g1.innovation == g2.innovation:
+                    genome_pairs.append([i1, i2])
+                    break
+
         new_genes = []
-        for g in fit[1].genes:
+        innovation_nrs = []
+        for p in genome_pairs:
             if random.random() > fit_ratio:
-                new_genes.append(copy.deepcopy(g))
-            elif g.innovation in fit[0].innovation_nrs:
-                new_genes.append(copy.deepcopy(fit[0].genes[fit[0].innovation_nrs.index(g.innovation)]))
-        b = Genome(self.input, self.output, self.function, self.get_innovation)
-        b.genes = new_genes
-        b.nodes = new_nodes
-        b.relayer()
+                new_genes.append(copy.copy(fit[1].genes[p[1]]))
+                innovation_nrs.append(fit[1].genes[p[1]].innovation)
+            else:
+                new_genes.append(copy.copy(fit[0].genes[p[0]]))
+                innovation_nrs.append(fit[0].genes[p[0]].innovation)
+
+        for g in fit[1].genes:
+            if g.innovation not in innovation_nrs and random.random() > fit_ratio:
+                new_genes.append(copy.copy(g))
+                innovation_nrs.append(g.innovation)
+
+        new_genome._insert_layer(1, [])
         for g in fit[0].genes:
-            if (g.innovation not in fit[1].innovation_nrs) and random.random() < fit_ratio:
-                b._add_gene(copy.deepcopy(g))  # TODO Check to prevent circles
-        for g in b.genes:
-            if not g.enabled and random.random() > .75:  # Random chance to reactivate genes.
-                g.enable()
-        for g in b.genes:
-            b.innovation_nrs.append(g.innovation)
-        b.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
-        return b
+            if g.innovation not in innovation_nrs and random.random() < fit_ratio:
+                new_genes.append(copy.copy(g))
+                innovation_nrs.append(g.innovation)
+
+        for g in new_genes:
+            while g.in_node > len(new_genome.nodes) - 1:
+                new_genome.nodes.append(Node(self.function))
+                new_genome.layers[1].append(new_genome.nodes[-1])
+            while g.out_node > len(new_genome.nodes) - 1:
+                new_genome.nodes.append(Node(self.function))
+                new_genome.layers[1].append(new_genome.nodes[-1])
+            new_genome._add_gene(g)
+        new_genome.relayer()
+        new_genome.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
+        return new_genome
 
     def get_innovation(self, in_node, out_node):
 
