@@ -59,14 +59,14 @@ class Genome:
     def _add_gene(self, gene):
         """Needs to check if the gene does not create a circle and rearrange layers if needed"""
         if gene.out_node in self.nodes[gene.in_node].after:
-            print("connection gene not valid")
+            # print("connection gene not valid")
             return False
         else:
-            after = list(set(self.nodes[gene.out_node].after + self.nodes[gene.in_node].after))
+            after = list(set(self.nodes[gene.out_node].after + self.nodes[gene.in_node].after + [gene.in_node]))
             self.nodes[gene.out_node].after = copy.copy(after)
             for node in self.nodes:
                 if gene.out_node in node.after:
-                    after = list(set(node.after + self.nodes[gene.in_node].after))
+                    after = list(set(node.after + self.nodes[gene.in_node].after + [gene.in_node]))
                     node.after = copy.copy(after)
 
             while self._find_layer(self.nodes[gene.in_node]) >= self._find_layer(self.nodes[gene.out_node]):

@@ -24,6 +24,7 @@ class Environment:
         self.carry = carry
         self.mutation_rates = mutation_rates
         self.generation_num = 0
+        self.species_nr = 10
 
     def create(self, nr):
         new = []
@@ -56,10 +57,13 @@ class Environment:
             allocated = round((averages[i] / total) * new_genome_nr)
             # if allocated is less than 1 then the species does not get added to the next generation
             new_genome = self._repop(species_surv[i], allocated - len(species_champ[i]))
-            new_population += (species_champ[:allocated][i] + new_genome)
+            new_population += (species_champ[i][:allocated] + new_genome)
         self.species = []
         self.speciate(new_population)
         self.generation_num += 1
+
+        self.dist = self.dist * (len(self.species)/self.species_nr)
+
         # Returning things for replay.
         if replay[0] == 0:  # return only top species
             if replay[1] == 0:  # Only top player

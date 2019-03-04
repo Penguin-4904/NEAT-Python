@@ -3,14 +3,14 @@ from Snake import Snake
 import time
 
 snake = Snake([10, 10], 9)
-test = Environment(snake, dist=[5, 1, .2], mutation_rates=[0.8, 0.05, 0.01])
+test = Environment(snake, dist=[1, 1, .2], mutation_rates=[0.8, 0.05, 0.01])
 print(type(test))
 test.create(1000)
 
 t = time.time()
 for i in range(100):
-    top_score = test.generation(replay=[0, 1]).score
-    print("Generation: {}, Time: {}, Max Score: {}".format(i, round(time.time()-t, 2), round(top_score, 4))
+    top_score = test.generation(replay=[0, 1])[0].score
+    print("Generation: {}, Time: {}, Max Score: {}, Species Sizes: {}".format(i, round(time.time()-t, 2), round(top_score, 4), [len(s) for s in test.species]))
     t = time.time()
 
 print(len(test.species))
