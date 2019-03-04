@@ -3,7 +3,7 @@ from Genome import *
 
 class Environment:
     def __init__(self, game, fun=sig, keep=1, dist=None, randomness=0, inno=0, carry=1,
-                 mutation_rates=None):
+                 mutation_rates=None, species_nr = 10):
         if dist is None:
             dist = [1 / 2, 1, 1]
         if mutation_rates is None:
@@ -24,14 +24,15 @@ class Environment:
         self.carry = carry
         self.mutation_rates = mutation_rates
         self.generation_num = 0
-        self.species_nr = 10
+        self.species_nr = species_nr
 
     def create(self, nr):
         new = []
         for i in range(nr):
             new.append(Genome(self.input, self.output, self.function, self.get_innovation))
             new[-1].complete_connect()
-        return self.speciate(new)
+        self.species = self.speciate(new, [new[-1]])
+        return True
 
     def generation(self, replay=None):
         if replay is None:
@@ -58,11 +59,11 @@ class Environment:
             # if allocated is less than 1 then the species does not get added to the next generation
             new_genome = self._repop(species_surv[i], allocated - len(species_champ[i]))
             new_population += (species_champ[i][:allocated] + new_genome)
-        self.species = []
-        self.speciate(new_population)
+        self.species = self.speciate(new_population, [random.choice(s) for s in species_surv])
         self.generation_num += 1
 
-        self.dist = self.dist * (len(self.species)/self.species_nr)
+        self.dist = self.dist * (1 + (.1 * (1 - (len(self.species)/self.species_nr)))) # Slowly adjusts the distance
+        # so that the nr of species reaches a specified nr.
 
         # Returning things for replay.
         if replay[0] == 0:  # return only top species
@@ -92,18 +93,19 @@ class Environment:
         g.last_play = frames
         return score
 
-    def speciate(self, new):
+    def speciate(self, new, reps):
+        new_species = [[] for i in range(len(reps))]
         for g in new:
             found = False
-            for s in self.species:
-                g2 = s[0]
-                if self.distance(g, g2) < self.dist:
-                    s.append(g)
+            for i in range(len(reps)):
+                if self.distance(g, reps[i]) < self.dist:
+                    new_species[i].append(g)
                     found = True
                     break
             if not found:
-                self.species.append([g])
-        return self.species
+                new_species.append([g])
+
+        return list(filter(lambda x: False if len(x) < 1 else True, new_species))
 
     def distance(self, g1, g2):
         weights = []
