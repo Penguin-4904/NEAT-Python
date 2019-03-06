@@ -3,7 +3,7 @@ from Snake import Snake
 import time
 
 snake = Snake([10, 10], 9)
-test = Environment(snake, dist=[1, 1, .2], mutation_rates=[0.8, 0.05, 0.01])
+test = Environment(snake, dist=[1, 2, 1], mutation_rates=[0.8, 0.05, 0.01])
 print(type(test))
 test.create(1000)
 

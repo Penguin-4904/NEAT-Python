@@ -1,9 +1,11 @@
+import math
+
 from Genome import *
 
 
 class Environment:
     def __init__(self, game, fun=sig, keep=1, dist=None, randomness=0, inno=0, carry=1,
-                 mutation_rates=None, species_nr = 10):
+                 mutation_rates=None, species_nr=10):
         if dist is None:
             dist = [1 / 2, 1, 1]
         if mutation_rates is None:
@@ -46,7 +48,7 @@ class Environment:
                 g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
             species_champ.append(s[:self.carry])
-            species_surv.append(s[:int(self.keep * len(s))])
+            species_surv.append(s[:math.ceil(self.keep * len(s))])
             averages.append(sum(g.score for g in s))
         # Allocating and creating offspring
         new_population = []
@@ -61,8 +63,12 @@ class Environment:
             new_population += (species_champ[i][:allocated] + new_genome)
         self.species = self.speciate(new_population, [random.choice(s) for s in species_surv])
         self.generation_num += 1
-
-        self.dist = self.dist * (1 + (.1 * (1 - (len(self.species)/self.species_nr)))) # Slowly adjusts the distance
+        if len(self.species) - self.species_nr < 0:
+            self.dist = self.dist - .02  # Slowly adjusts the distance
+        if len(self.species) - self.species_nr > self.species_nr:
+            self.dist = self.dist + .05
+        elif len(self.species) - self.species_nr > 0:
+            self.dist = self.dist + .02
         # so that the nr of species reaches a specified nr.
 
         # Returning things for replay.
@@ -94,7 +100,7 @@ class Environment:
         return score
 
     def speciate(self, new, reps):
-        new_species = [[] for i in range(len(reps))]
+        new_species = [[] for _ in range(len(reps))]
         for g in new:
             found = False
             for i in range(len(reps)):
