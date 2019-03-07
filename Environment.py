@@ -14,7 +14,7 @@ class Environment:
         self.function = fun
         self.randomness = randomness
         self.keep = keep
-        self.population = []
+        self.population = 0
         self.global_inno = inno
         self.input = game.input_size
         self.output = game.output_size
@@ -34,6 +34,7 @@ class Environment:
             new.append(Genome(self.input, self.output, self.function, self.get_innovation))
             new[-1].complete_connect()
         self.species = self.speciate(new, [new[-1]])
+        self.population = nr
         return True
 
     def generation(self, replay=None):
@@ -55,7 +56,7 @@ class Environment:
         self.prev_innovation = [[], []]
         old_species = self.species
         total = sum(averages)
-        new_genome_nr = sum(len(s) for s in self.species)
+        new_genome_nr = self.population
         for i in range(len(species_surv)):
             allocated = round((averages[i] / total) * new_genome_nr)
             # if allocated is less than 1 then the species does not get added to the next generation
@@ -178,6 +179,8 @@ class Environment:
             while g.out_node > len(new_genome.nodes) - 1:
                 new_genome.nodes.append(Node(self.function))
                 new_genome.layers[1].append(new_genome.nodes[-1])
+            if not g.enabled and random.random > .75:
+                g.enable()
             new_genome._add_gene(g)
         new_genome.relayer()
         new_genome.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
