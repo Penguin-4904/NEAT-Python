@@ -3,13 +3,15 @@ from Snake import Snake
 import time
 
 snake = Snake([10, 10], 9)
-test = Environment(snake, dist=[1, 2, 1], mutation_rates=[0.8, 0.05, 0.01])
+test = Environment(snake, dist=[.8, 1, .5], mutation_rates=[0.8, 0.05, 0.01], keep=.3)
 print(type(test))
-test.create(1000)
+test.create(200)
 
 t = time.time()
-for i in range(100):
-    top_score = test.generation(replay=[0, 1])[0].score
+for i in range(400):
+    r = test.generation(replay=[1, 3])
+    r.sort(key=lambda x: sorted(x, key=lambda y: y.score * len(x), reverse=True)[0].score * len(x), reverse = True)
+    top_score = r[0][0].score * len(r[0])
     print("Generation: {}, Time: {}, Max Score: {}, Species Sizes: {}".format(i, round(time.time()-t, 2), round(top_score, 4), [len(s) for s in test.species]))
     t = time.time()
 

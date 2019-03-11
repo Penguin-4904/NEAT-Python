@@ -33,9 +33,8 @@ class Snake:
             done = self.is_dead()
             if time - last_time >= self.max_time:
                 done = True  # hasen't gotten a fruit in a while but should have been able to.
-        score = (self.score + (time/10))/ ((time/10) + self.goal)
+        score = self.score + time/self.max_time
         # Rewards first and formost score and then staying alive,
-        # but also looks for efficiency after the goal is met.
         self.reset()
         return score, frames
 

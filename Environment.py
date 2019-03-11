@@ -4,7 +4,7 @@ from Genome import *
 
 
 class Environment:
-    def __init__(self, game, fun=sig, keep=1, dist=None, randomness=0, inno=0, carry=1,
+    def __init__(self, game, fun=sig, keep=(1/2), dist=None, randomness=0, inno=0, carry=1,
                  mutation_rates=None, species_nr=10):
         if dist is None:
             dist = [1 / 2, 1, 1]
@@ -27,6 +27,8 @@ class Environment:
         self.mutation_rates = mutation_rates
         self.generation_num = 0
         self.species_nr = species_nr
+        self.largest_dist = 0
+        self.large_genome_size = 20  # the size at which a genome is considered "large"
 
     def create(self, nr):
         new = []
@@ -64,12 +66,12 @@ class Environment:
             new_population += (species_champ[i][:allocated] + new_genome)
         self.species = self.speciate(new_population, [random.choice(s) for s in species_surv])
         self.generation_num += 1
-        if len(self.species) - self.species_nr < 0:
-            self.dist = self.dist - .02  # Slowly adjusts the distance
-        if len(self.species) - self.species_nr > self.species_nr:
-            self.dist = self.dist + .05
-        elif len(self.species) - self.species_nr > 0:
-            self.dist = self.dist + .02
+        # if len(self.species) - self.species_nr < 0:
+        #     self.dist = self.dist - .02  # Slowly adjusts the distance
+        # if len(self.species) - self.species_nr > self.species_nr:
+        #     self.dist = self.dist + .05
+        # elif len(self.species) - self.species_nr > 0:
+        #     self.dist = self.dist + .02
         # so that the nr of species reaches a specified nr.
 
         # Returning things for replay.
@@ -128,7 +130,9 @@ class Environment:
                 exess_disjoint += 1
         if len(weights) == 0:
             return self.c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes)))
-        return self.c1 * (exess_disjoint / max(len(g1.genes), len(g2.genes))) + self.c2 * (sum(weights) / len(weights))
+        return self.c1 * (exess_disjoint / max(len(g1.genes) - self.large_genome_size,
+                                               len(g2.genes) - self.large_genome_size, 1)) \
+               + self.c2 * (sum(weights) / len(weights))
 
     def _repop(self, s, nr):
         if nr < 1:
@@ -166,12 +170,12 @@ class Environment:
                 new_genes.append(copy.copy(g))
                 innovation_nrs.append(g.innovation)
 
-        new_genome._insert_layer(1, [])
         for g in fit[0].genes:
             if g.innovation not in innovation_nrs and random.random() < fit_ratio:
                 new_genes.append(copy.copy(g))
                 innovation_nrs.append(g.innovation)
 
+        new_genome._insert_layer(1, [])
         for g in new_genes:
             while g.in_node > len(new_genome.nodes) - 1:
                 new_genome.nodes.append(Node(self.function))
@@ -179,7 +183,7 @@ class Environment:
             while g.out_node > len(new_genome.nodes) - 1:
                 new_genome.nodes.append(Node(self.function))
                 new_genome.layers[1].append(new_genome.nodes[-1])
-            if not g.enabled and random.random > .75:
+            if not g.enabled and random.random() > .75:
                 g.enable()
             new_genome._add_gene(g)
         new_genome.relayer()
