@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Snake:
-    def __init__(self, board, goal):
+    def __init__(self, board):
         self.input_size = 4
         self.output_size = 4
         self.fruit = []
@@ -14,7 +14,6 @@ class Snake:
                       [int(self.board[0] / 2), int(self.board[1] / 2)]]
         self.score = 0
         self.new_fruit()
-        self.goal = goal
         self.max_time = board[0] * board[1]
 
     def run_genome(self, g, save_replay=False):
@@ -100,9 +99,8 @@ class Snake:
         # if value is positive then it indicates that it sees the fruit there else it sees wall or itself
 
         # up
-
         see_up = []
-        up_dist = self.snake[-1][1] - self.board[1]
+        up_dist = self.board[1] - self.snake[-1][1]
 
         for s in self.snake[:-1]:
             if (s[0] - self.snake[-1][0]) == 0 and (s[1] - self.snake[-1][1]) > 0:
@@ -111,13 +109,15 @@ class Snake:
             see_up.append(self.fruit)
         see_up.sort(key=lambda x: x[1] - self.snake[-1][1])
         if len(see_up) > 0:
-            up_dist = self.snake[-1][1] - see_up[0][1]
+            up_dist = see_up[0][1] - self.snake[-1][1]
             if (self.fruit in see_up) and up_dist == (self.snake[-1][1] - self.fruit[1]):
-                up_dist = -up_dist
+                pass
+            else:
+                up_dist = up_dist - self.board[1]
 
         # right
         see_right = []
-        right_dist = self.snake[-1][0] - self.board[0]
+        right_dist = self.board[0] - self.snake[-1][0]
         for s in self.snake[:-1]:
             if (s[1] - self.snake[-1][1]) == 0 and (s[0] - self.snake[-1][0]) > 0:
                 see_right.append(s)
@@ -125,13 +125,14 @@ class Snake:
             see_right.append(self.fruit)
         see_right.sort(key=lambda x: x[0] - self.snake[-1][0])
         if len(see_right) > 0:
-            right_dist = self.snake[-1][0] - see_right[0][0]
+            right_dist = see_right[0][0] - self.snake[-1][0]
             if (self.fruit in see_right) and right_dist == (self.snake[-1][0] - self.fruit[0]):
-                right_dist = -right_dist
-
+                pass
+            else:
+                right_dist = right_dist - self.board[0]
         # down
         see_down = []
-        down_dist = - self.snake[-1][1]
+        down_dist = self.snake[-1][1]
         for s in self.snake[:-1]:
             if (s[0] - self.snake[-1][0]) == 0 and (s[1] - self.snake[-1][1]) < 0:
                 see_down.append(s)
@@ -139,13 +140,15 @@ class Snake:
             see_down.append(self.fruit)
         see_down.sort(key=lambda x: self.snake[-1][1] - x[1])
         if len(see_down) > 0:
-            down_dist = -(self.snake[-1][1] - see_down[0][1])
+            down_dist = self.snake[-1][1] - see_down[0][1]
             if (self.fruit in see_down) and down_dist == (self.snake[-1][1] - self.fruit[1]):
-                down_dist = -down_dist
+                pass
+            else:
+                down_dist = down_dist - self.board[0]
 
         # left
         see_left = []
-        left_dist = - self.snake[-1][0]
+        left_dist = self.snake[-1][0]
         for s in self.snake[:-1]:
             if (s[1] - self.snake[-1][1]) == 0 and (s[0] - self.snake[-1][0]) < 0:
                 see_left.append(s)
@@ -155,7 +158,9 @@ class Snake:
         if len(see_left) > 0:
             left_dist = -(self.snake[-1][0] - see_left[0][0])
             if (self.fruit in see_left) and left_dist == (self.snake[-1][0] - self.fruit[0]):
-                left_dist = -left_dist
+                pass
+            else:
+                left_dist = left_dist - self.board[0]
 
         return [up_dist, right_dist, down_dist, left_dist]
 

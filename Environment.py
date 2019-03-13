@@ -29,6 +29,9 @@ class Environment:
         self.species_nr = species_nr
         self.largest_dist = 0
         self.large_genome_size = 20  # the size at which a genome is considered "large"
+        self.staleness = []
+        self.max_staleness = 15
+        self.max_score = []
 
     def create(self, nr):
         new = []
