@@ -98,69 +98,40 @@ class Snake:
         """
         # if value is positive then it indicates that it sees the fruit there else it sees wall or itself
 
-        # up
-        see_up = []
-        up_dist = self.board[1] - self.snake[-1][1]
+        obstacles = np.array(self.snake[:-1] + [[self.snake[-1][0], 0], [0, self.snake[-1][1]], [self.snake[-1][0], self.board[1]], [self.board[0], self.snake[-1][1]], self.fruit])
+        dist = obstacles - self.snake[-1]
 
-        for s in self.snake[:-1]:
-            if (s[0] - self.snake[-1][0]) == 0 and (s[1] - self.snake[-1][1]) > 0:
-                see_up.append(s)
-        if (self.fruit[0] - self.snake[-1][0]) == 0 and (self.fruit[1] - self.snake[-1][1]) > 0:
-            see_up.append(self.fruit)
-        see_up.sort(key=lambda x: x[1] - self.snake[-1][1])
-        if len(see_up) > 0:
-            up_dist = see_up[0][1] - self.snake[-1][1]
-            if (self.fruit in see_up) and up_dist == (self.snake[-1][1] - self.fruit[1]):
-                pass
-            else:
-                up_dist = up_dist - self.board[1]
+        up_dist = dist[(dist[:, 0] == 0) & (dist[:, 1] >= 0)]
+        up_dist = up_dist[np.argmin(up_dist[:, 1])]
+        up_index = np.where((dist[:, 0] == up_dist[0]) & (dist[:, 1] == up_dist[1]))[0][0]
+        if up_index == len(dist) - 1:
+            up_dist = self.board[1] - up_dist[1]
+        else:
+            up_dist = up_dist[1] - self.board[1]
 
-        # right
-        see_right = []
-        right_dist = self.board[0] - self.snake[-1][0]
-        for s in self.snake[:-1]:
-            if (s[1] - self.snake[-1][1]) == 0 and (s[0] - self.snake[-1][0]) > 0:
-                see_right.append(s)
-        if (self.fruit[1] - self.snake[-1][1]) == 0 and (self.fruit[0] - self.snake[-1][0]) > 0:
-            see_right.append(self.fruit)
-        see_right.sort(key=lambda x: x[0] - self.snake[-1][0])
-        if len(see_right) > 0:
-            right_dist = see_right[0][0] - self.snake[-1][0]
-            if (self.fruit in see_right) and right_dist == (self.snake[-1][0] - self.fruit[0]):
-                pass
-            else:
-                right_dist = right_dist - self.board[0]
-        # down
-        see_down = []
-        down_dist = self.snake[-1][1]
-        for s in self.snake[:-1]:
-            if (s[0] - self.snake[-1][0]) == 0 and (s[1] - self.snake[-1][1]) < 0:
-                see_down.append(s)
-        if (self.fruit[0] - self.snake[-1][0]) == 0 and (self.fruit[1] - self.snake[-1][1]) < 0:
-            see_down.append(self.fruit)
-        see_down.sort(key=lambda x: self.snake[-1][1] - x[1])
-        if len(see_down) > 0:
-            down_dist = self.snake[-1][1] - see_down[0][1]
-            if (self.fruit in see_down) and down_dist == (self.snake[-1][1] - self.fruit[1]):
-                pass
-            else:
-                down_dist = down_dist - self.board[0]
+        down_dist = dist[(dist[:, 0] == 0) & (dist[:, 1] <= 0)]
+        down_dist = down_dist[np.argmax(down_dist[:, 1])]
+        down_index = np.where((dist[:, 0] == down_dist[0]) & (dist[:, 1] == down_dist[1]))[0][0]
+        if down_index == len(dist) - 1:
+            down_dist = self.board[1] - down_dist[1]
+        else:
+            down_dist = down_dist[1] - self.board[1]
 
-        # left
-        see_left = []
-        left_dist = self.snake[-1][0]
-        for s in self.snake[:-1]:
-            if (s[1] - self.snake[-1][1]) == 0 and (s[0] - self.snake[-1][0]) < 0:
-                see_left.append(s)
-        if (self.fruit[1] - self.snake[-1][1]) == 0 and (self.fruit[0] - self.snake[-1][0]) < 0:
-            see_left.append(self.fruit)
-        see_left.sort(key=lambda x: self.snake[-1][0] - x[0])
-        if len(see_left) > 0:
-            left_dist = -(self.snake[-1][0] - see_left[0][0])
-            if (self.fruit in see_left) and left_dist == (self.snake[-1][0] - self.fruit[0]):
-                pass
-            else:
-                left_dist = left_dist - self.board[0]
+        left_dist = dist[(dist[:, 1] == 0) & (dist[:, 0] <= 0)]
+        left_dist = left_dist[np.argmax(left_dist[:, 1])]
+        left_index = np.where((dist[:, 0] == left_dist[0]) & (dist[:, 1] == left_dist[1]))[0][0]
+        if left_index == len(dist) - 1:
+            left_dist = self.board[1] - left_dist[1]
+        else:
+            left_dist = left_dist[1] - self.board[1]
+
+        right_dist = dist[(dist[:, 1] == 0) & (dist[:, 0] >= 0)]
+        right_dist = right_dist[np.argmin(right_dist[:,1])]
+        right_index = np.where((dist[:,0] == right_dist[0]) & (dist[:,1] == right_dist[1]))[0][0]
+        if right_index == len(dist) - 1:
+            right_dist = self.board[1] - right_dist[1]
+        else:
+            right_dist = right_dist[1] - self.board[1]
 
         return [up_dist, right_dist, down_dist, left_dist]
 
