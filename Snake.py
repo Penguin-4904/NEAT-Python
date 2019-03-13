@@ -150,3 +150,15 @@ class Snake:
         print("Action: {}".format(frame[3]))
         print("Score raw: {}".format(frame[2]))
         print(string)
+
+    def image_frame(self, frame):
+        board = np.full(self.board, 0)
+        snake = frame[0]
+        fruit = frame[1]
+        for s in snake:
+            if 0 <= s[0] < self.board[0] and 0 <= s[1] < self.board[0]:
+                board[s[0]][s[1]] = 1
+
+        board[int(fruit[0])][int(fruit[1])] = 1
+
+        return board
