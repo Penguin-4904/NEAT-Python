@@ -10,7 +10,7 @@ fig = plt.figure()
 ax = plt.axes()
 
 snake = Snake([10, 10])
-test = Environment(snake, dist=[1.01, 1, .01], mutation_rates=[0.8, 0.05, 0.01], keep=.5)
+test = Environment(snake, dist=[1.01, 1, .01], mutation_rates=[0.8, 0.05, 0.01], keep=.33)
 test.create(200)
 
 t = time.time()
@@ -38,7 +38,6 @@ for i, f in enumerate(best_play):
 
 def animate(i):
     return ax.imshow(snake.image_frame(best_play[i])),
-
 
 anim = animation.FuncAnimation(fig, animate, frames=len(best_play), blit=True)
 
