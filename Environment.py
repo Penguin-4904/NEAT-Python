@@ -50,33 +50,37 @@ class Environment:
         species_surv = []
         averages = []
         # Raw scoring
-        self.staleness += ((len(self.species) - len(self.staleness)) * [0])
-        self.max_score += ((len(self.species) - len(self.max_score)) * [0])
+        # self.staleness += ((len(self.species) - len(self.staleness)) * [0])
+        # self.max_score += ((len(self.species) - len(self.max_score)) * [0])
         for s in self.species:
             i = self.species.index(s)
             for g in s:
                 g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
 
-            if s[0].score * len(s) > self.max_score[i]:
-                self.staleness[i] = 0
-                self.max_score[i] = s[0].score * len(s)
-            else:
-                self.staleness[i] += 1
+            species_champ.append(s[:self.carry])
+            species_surv.append(s[:math.ceil(self.keep * len(s))])
+            averages.append(sum(g.score for g in s))
 
-            if not (self.staleness[i] > self.max_staleness):
-                species_champ.append(s[:self.carry])
-                species_surv.append(s[:math.ceil(self.keep * len(s))])
-                averages.append(sum(g.score for g in s))
-            else:
-                if len(self.species) <= 1:
-                    species_champ.append(s[:self.carry])
-                    species_surv.append(s[:self.carry])
-                    averages.append(sum(g.score for g in s))
-                else:
-                    self.max_score.pop(i)
-                    self.max_score.pop(i)
-                    self.species.pop(i)
+            # if s[0].score * len(s) > self.max_score[i]:
+            #     self.staleness[i] = 0
+            #     self.max_score[i] = s[0].score * len(s)
+            # else:
+            #     self.staleness[i] += 1
+            #
+            # if not (self.staleness[i] > self.max_staleness):
+            #     species_champ.append(s[:self.carry])
+            #     species_surv.append(s[:math.ceil(self.keep * len(s))])
+            #     averages.append(sum(g.score for g in s))
+            # else:
+            #     if len(self.species) <= 1:
+            #         species_champ.append(s[:self.carry])
+            #         species_surv.append(s[:self.carry])
+            #         averages.append(sum(g.score for g in s))
+            #     else:
+            #         self.max_score.pop(i)
+            #         self.max_score.pop(i)
+            #         self.species.pop(i)
 
         # Checking "Staleness"
 
