@@ -29,6 +29,7 @@ class Environment:
         self.species_nr = species_nr
         self.largest_dist = 0
         self.large_genome_size = 20  # the size at which a genome is considered "large"
+
         self.staleness = []
         self.max_staleness = 15
         self.max_score = []
@@ -49,13 +50,30 @@ class Environment:
         species_surv = []
         averages = []
         # Raw scoring
+        self.staleness += ((len(self.species) - len(self.staleness)) * [0])
+        self.max_score += ((len(self.species) - len(self.max_score)) * [0])
         for s in self.species:
+            i = self.species.index(s)
             for g in s:
                 g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
-            species_champ.append(s[:self.carry])
-            species_surv.append(s[:math.ceil(self.keep * len(s))])
-            averages.append(sum(g.score for g in s))
+
+            if s[0].score * len(s) > self.max_score[i]:
+                self.staleness[i] = 0
+                self.max_score[i] = s[0].score * len(s)
+            else:
+                self.staleness[i] += 1
+
+            if not (self.staleness[i] > self.max_staleness):
+                species_champ.append(s[:self.carry])
+                species_surv.append(s[:math.ceil(self.keep * len(s))])
+                averages.append(sum(g.score for g in s))
+            else:
+                self.staleness.pop(i)
+                self.max_score.pop(i)
+
+        # Checking "Staleness"
+
         # Allocating and creating offspring
         new_population = []
         self.prev_innovation = [[], []]
@@ -67,15 +85,9 @@ class Environment:
             # if allocated is less than 1 then the species does not get added to the next generation
             new_genome = self._repop(species_surv[i], allocated - len(species_champ[i]))
             new_population += (species_champ[i][:allocated] + new_genome)
-        self.species = self.speciate(new_population, [random.choice(s) for s in species_surv])
+
+        self.species = self.speciate(new_population, [s[0] for s in species_surv])
         self.generation_num += 1
-        # if len(self.species) - self.species_nr < 0:
-        #     self.dist = self.dist - .02  # Slowly adjusts the distance
-        # if len(self.species) - self.species_nr > self.species_nr:
-        #     self.dist = self.dist + .05
-        # elif len(self.species) - self.species_nr > 0:
-        #     self.dist = self.dist + .02
-        # so that the nr of species reaches a specified nr.
 
         # Returning things for replay.
         if replay[0] == 0:  # return only top species

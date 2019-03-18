@@ -17,7 +17,7 @@ t = time.time()
 best_score = 0
 best_play = []
 top_scores = []
-for i in range(1000):
+for i in range(100):
     species = [len(s) for s in test.species]
     r = test.generation(replay=[1, 3])
     sort = sorted(r, key=lambda x: sorted(x, key=lambda y: y.score * len(x), reverse=True)[0].score * len(x),
@@ -36,9 +36,16 @@ for i, f in enumerate(best_play):
     snake.print_frame(f)
 
 
-def animate(i):
-    return ax.imshow(snake.image_frame(best_play[i])),
+def animate(n):
+    return ax.imshow(snake.image_frame(best_play[n])),
+
 
 anim = animation.FuncAnimation(fig, animate, frames=len(best_play), blit=True)
+anim.save('Score ' + str(best_score) + '.gif', fps=10)
 
-anim.save('basic_animation.gif', fps=10)
+ax = plt.axes()
+
+ax.xlabel("Generation")
+ax.ylabel("Best Score")
+ax.plot(top_scores)
+plt.savefig('plot.jpg')
