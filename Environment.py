@@ -69,8 +69,14 @@ class Environment:
                 species_surv.append(s[:math.ceil(self.keep * len(s))])
                 averages.append(sum(g.score for g in s))
             else:
-                self.staleness.pop(i)
-                self.max_score.pop(i)
+                if len(self.species) <= 1:
+                    species_champ.append(s[:self.carry])
+                    species_surv.append(s[:self.carry])
+                    averages.append(sum(g.score for g in s))
+                else:
+                    self.max_score.pop(i)
+                    self.max_score.pop(i)
+                    self.species.pop(i)
 
         # Checking "Staleness"
 

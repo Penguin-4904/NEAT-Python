@@ -9,7 +9,7 @@ from matplotlib import animation
 fig = plt.figure()
 ax = plt.axes()
 
-snake = Snake([10, 10])
+snake = Snake([20, 20])
 test = Environment(snake, dist=[1.01, 1, .01], mutation_rates=[0.8, 0.05, 0.01], keep=.33)
 test.create(200)
 
@@ -31,11 +31,6 @@ for i in range(100):
           .format(i, round(time.time() - t, 2), round(top_score, 4), r.index(sort[0]), species))
     t = time.time()
 
-for i, f in enumerate(best_play):
-    print("New Frame: {}".format(i))
-    snake.print_frame(f)
-
-
 def animate(n):
     return ax.imshow(snake.image_frame(best_play[n])),
 
@@ -43,9 +38,10 @@ def animate(n):
 anim = animation.FuncAnimation(fig, animate, frames=len(best_play), blit=True)
 anim.save('Score ' + str(best_score) + '.gif', fps=10)
 
+fig = plt.figure()
 ax = plt.axes()
 
-ax.xlabel("Generation")
-ax.ylabel("Best Score")
+plt.xlabel("Generation")
+plt.ylabel("Best Score")
 ax.plot(top_scores)
 plt.savefig('plot.jpg')
