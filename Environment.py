@@ -31,7 +31,7 @@ class Environment:
         self.large_genome_size = 20  # the size at which a genome is considered "large"
 
         self.staleness = []
-        self.max_staleness = 15
+        self.max_staleness = 40
         self.max_score = []
 
     def create(self, nr):
@@ -49,45 +49,40 @@ class Environment:
         species_champ = []
         species_surv = []
         averages = []
+        old_species = []
         # Raw scoring
-        # self.staleness += ((len(self.species) - len(self.staleness)) * [0])
-        # self.max_score += ((len(self.species) - len(self.max_score)) * [0])
+        self.staleness += ((len(self.species) - len(self.staleness)) * [0])
+        self.max_score += ((len(self.species) - len(self.max_score)) * [0])
         for s in self.species:
             i = self.species.index(s)
             for g in s:
                 g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
+            old_species.append(copy.deepcopy(s))
+            # species_champ.append(s[:self.carry])
+            # species_surv.append(s[:math.ceil(self.keep * len(s))])
+            # averages.append(sum(g.score for g in s))
 
-            species_champ.append(s[:self.carry])
-            species_surv.append(s[:math.ceil(self.keep * len(s))])
-            averages.append(sum(g.score for g in s))
+            if s[0].score >= self.max_score[i]:
+                self.staleness[i] = 0
+                self.max_score[i] = s[0].score
+            else:
+                self.staleness[i] += 1
 
-            # if s[0].score * len(s) > self.max_score[i]:
-            #     self.staleness[i] = 0
-            #     self.max_score[i] = s[0].score * len(s)
-            # else:
-            #     self.staleness[i] += 1
-            #
-            # if not (self.staleness[i] > self.max_staleness):
-            #     species_champ.append(s[:self.carry])
-            #     species_surv.append(s[:math.ceil(self.keep * len(s))])
-            #     averages.append(sum(g.score for g in s))
-            # else:
-            #     if len(self.species) <= 1:
-            #         species_champ.append(s[:self.carry])
-            #         species_surv.append(s[:self.carry])
-            #         averages.append(sum(g.score for g in s))
-            #     else:
-            #         self.max_score.pop(i)
-            #         self.max_score.pop(i)
-            #         self.species.pop(i)
+            if (not (self.staleness[i] > self.max_staleness)) or len(self.species) <= 1:
+                species_champ.append(s[:self.carry])
+                species_surv.append(s[:math.ceil(self.keep * len(s))])
+                averages.append(sum(g.score for g in s))
+            else:
+                self.max_score.pop(i)
+                self.staleness.pop(i)
+                self.species.pop(i)
 
         # Checking "Staleness"
 
         # Allocating and creating offspring
         new_population = []
         self.prev_innovation = [[], []]
-        old_species = self.species
         total = sum(averages)
         new_genome_nr = self.population
         for i in range(len(species_surv)):
