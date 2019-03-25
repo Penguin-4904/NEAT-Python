@@ -50,15 +50,15 @@ class Environment:
         species_surv = []
         averages = []
         old_species = []
+        remove = []
         # Raw scoring
         self.staleness += ((len(self.species) - len(self.staleness)) * [0])
         self.max_score += ((len(self.species) - len(self.max_score)) * [0])
-        for s in self.species:
-            i = self.species.index(s)
+        for i, s in enumerate(self.species):
             for g in s:
                 g.score = (self.score_genome(g) * random.gauss(1, self.randomness)) / len(s)
             s.sort(key=lambda x: x.score, reverse=True)
-            old_species.append(copy.deepcopy(s))
+            old_species.append(s)
             # species_champ.append(s[:self.carry])
             # species_surv.append(s[:math.ceil(self.keep * len(s))])
             # averages.append(sum(g.score for g in s))
@@ -74,10 +74,12 @@ class Environment:
                 species_surv.append(s[:math.ceil(self.keep * len(s))])
                 averages.append(sum(g.score for g in s))
             else:
-                self.max_score.pop(i)
-                self.staleness.pop(i)
-                self.species.pop(i)
+                remove.append(i)
 
+        for i in sorted(remove, reverse=True):
+            self.staleness.pop(i)
+            self.max_score.pop(i)
+            self.species.pop(i)
         # Checking "Staleness"
 
         # Allocating and creating offspring
@@ -179,33 +181,40 @@ class Environment:
         innovation_nrs = []
         for p in genome_pairs:
             if random.random() > fit_ratio:
-                new_genes.append(copy.copy(fit[1].genes[p[1]]))
+                new_genes.append(fit[1].genes[p[1]])
                 innovation_nrs.append(fit[1].genes[p[1]].innovation)
             else:
-                new_genes.append(copy.copy(fit[0].genes[p[0]]))
+                new_genes.append(fit[0].genes[p[0]])
                 innovation_nrs.append(fit[0].genes[p[0]].innovation)
 
         for g in fit[1].genes:
-            if g.innovation not in innovation_nrs and random.random() > fit_ratio:
-                new_genes.append(copy.copy(g))
+            if g.innovation not in innovation_nrs: # and random.random() > fit_ratio:
+                new_genes.append(g)
                 innovation_nrs.append(g.innovation)
 
-        for g in fit[0].genes:
-            if g.innovation not in innovation_nrs and random.random() < fit_ratio:
-                new_genes.append(copy.copy(g))
-                innovation_nrs.append(g.innovation)
+        # for g in fit[0].genes:
+        #     if g.innovation not in innovation_nrs and random.random() < fit_ratio:
+        #         new_genes.append(g)
+        #         innovation_nrs.append(g.innovation)
 
+        new_genes = copy.deepcopy(new_genes)
         new_genome._insert_layer(1, [])
+        for i in range(len(fit[1].nodes)):
+            if len(new_genome.nodes) - 1 < i:
+                new_genome.nodes.append(Node(self.function))
+                new_genome.layers[1].append(new_genome.nodes[-1])
+
         for g in new_genes:
-            while g.in_node > len(new_genome.nodes) - 1:
-                new_genome.nodes.append(Node(self.function))
-                new_genome.layers[1].append(new_genome.nodes[-1])
-            while g.out_node > len(new_genome.nodes) - 1:
-                new_genome.nodes.append(Node(self.function))
-                new_genome.layers[1].append(new_genome.nodes[-1])
-            if not g.enabled and random.random() > .75:
-                g.enable()
             new_genome._add_gene(g)
+        # for g in new_genes:
+        #     while g.in_node > len(new_genome.nodes) - 1:
+        #         new_genome.nodes.append(Node(self.function))
+        #         new_genome.layers[1].append(new_genome.nodes[-1])
+        #     while g.out_node > len(new_genome.nodes) - 1:
+        #         new_genome.nodes.append(Node(self.function))
+        #         new_genome.layers[1].append(new_genome.nodes[-1])
+        #     if not g.enabled and random.random() > .75:
+        #         g.enable()
         new_genome.relayer()
         new_genome.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
         return new_genome

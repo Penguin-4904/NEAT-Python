@@ -62,12 +62,12 @@ class Genome:
             # print("connection gene not valid")
             return False
         else:
-            after = list(set(self.nodes[gene.out_node].after + self.nodes[gene.in_node].after + [gene.in_node]))
-            self.nodes[gene.out_node].after = copy.copy(after)
+            after1 = list(set(self.nodes[gene.out_node].after + self.nodes[gene.in_node].after + [gene.in_node]))
+            self.nodes[gene.out_node].after = after1
             for node in self.nodes:
                 if gene.out_node in node.after:
-                    after = list(set(node.after + self.nodes[gene.in_node].after + [gene.in_node]))
-                    node.after = copy.copy(after)
+                    after2 = list(set(node.after + self.nodes[gene.in_node].after + [gene.in_node]))
+                    node.after = after2
 
             while self._find_layer(self.nodes[gene.in_node]) >= self._find_layer(self.nodes[gene.out_node]):
                 self._move_node(self.nodes[gene.in_node])
@@ -144,7 +144,7 @@ class Genome:
             self._move_node(node)
 
     def _recursive_relayer(self, n):
-        after = copy.copy(n.after)
+        after = n.after
         for a in n.after:
             for i in self._recursive_relayer(self.nodes[a]):
                 if i not in after:

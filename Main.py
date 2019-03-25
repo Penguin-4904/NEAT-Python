@@ -9,7 +9,7 @@ from matplotlib import animation
 fig = plt.figure()
 ax = plt.axes()
 
-snake = Snake([20, 20])
+snake = Snake([10, 10])
 test = Environment(snake, dist=[1.01, 1, .1], mutation_rates=[0.8, 0.05, 0.01], keep=.33, randomness=0)
 test.create(200)
 
