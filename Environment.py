@@ -69,7 +69,7 @@ class Environment:
             else:
                 self.staleness[i] += 1
 
-            if (not (self.staleness[i] > self.max_staleness)) or len(self.species) <= 1:
+            if (not (self.staleness[i] > self.max_staleness)) or len(self.species) <= len(remove) + 1:
                 species_champ.append(s[:self.carry])
                 species_surv.append(s[:math.ceil(self.keep * len(s))])
                 averages.append(sum(g.score for g in s))
