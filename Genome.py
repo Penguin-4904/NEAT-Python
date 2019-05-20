@@ -1,4 +1,3 @@
-import copy
 import random
 from Node import *
 from Gene import *

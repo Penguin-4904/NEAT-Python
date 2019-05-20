@@ -1,3 +1,4 @@
+import copy
 import math
 
 from Genome import *
@@ -77,14 +78,14 @@ class Environment:
                 remove.append(i)
 
         for i in sorted(remove, reverse=True):
-            self.staleness.pop(i)
-            self.max_score.pop(i)
-            self.species.pop(i)
+            del self.staleness[i]
+            del self.max_score[i]
+            del self.species[i]
         # Checking "Staleness"
 
         # Allocating and creating offspring
         new_population = []
-        self.prev_innovation = [[], []]
+        #self.prev_innovation = [[], []]
         total = sum(averages)
         new_genome_nr = self.population
         for i in range(len(species_surv)):
@@ -205,7 +206,10 @@ class Environment:
                 new_genome.layers[1].append(new_genome.nodes[-1])
 
         for g in new_genes:
+            if not g.enabled and random.random() > .75:
+                g.enable()
             new_genome._add_gene(g)
+
         # for g in new_genes:
         #     while g.in_node > len(new_genome.nodes) - 1:
         #         new_genome.nodes.append(Node(self.function))
@@ -213,8 +217,7 @@ class Environment:
         #     while g.out_node > len(new_genome.nodes) - 1:
         #         new_genome.nodes.append(Node(self.function))
         #         new_genome.layers[1].append(new_genome.nodes[-1])
-        #     if not g.enabled and random.random() > .75:
-        #         g.enable()
+        #
         new_genome.relayer()
         new_genome.mutate(self.mutation_rates[0], self.mutation_rates[1], self.mutation_rates[2])
         return new_genome
